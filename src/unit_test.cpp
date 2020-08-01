@@ -1,5 +1,5 @@
 #include "iostream"
-#include "src/boxFilter.h"
+#include "boxFilter.h"
 #include <opencv2/opencv.hpp>
 using namespace std;
 using namespace cv;
@@ -9,9 +9,15 @@ int main(){
 	Mat src = cv::imread("test_img/car.jpg", 0);
 	int Height = src.rows;
 	int Width = src.cols;
+	int Radius = 11;
 	unsigned char *Src = src.data;
 	unsigned char *Dest = new unsigned char[Height * Width];
 
-	
-
+	int64 st = cvGetTickCount();
+	for(int i=0; i<10; i++){
+		BoxFilterOrigin(Src, Dest, Width, Height, Radius);
+	}
+	double duration = (cv::getTickCount() - st) / cv::getTickFrequency() * 100;
+	printf("%.5f\n", duration);
+	return 0;
 }

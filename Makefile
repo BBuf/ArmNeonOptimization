@@ -2,12 +2,12 @@ CXX = arm-himix200-linux-g++
 CC = arm-himix200-linux-gcc
 AR = arm-himix200-linux-ar cqs
 
-TOP_DIR = ..
+TOP_DIR = .
 
 TARGET_EXE = unit_test
 
 CXX_SOURCE += $(TOP_DIR)/src/boxFilter.cpp
-CXX_SOURCE += $(TOP_DIR)/unit_test.cpp
+CXX_SOURCE += $(TOP_DIR)/src/unit_test.cpp
 
 
 ####################head file###################
@@ -19,7 +19,7 @@ DEP_INC_DIR += -I$(TOP_DIR)/src
 
 
 ####################ld flag###################
-LDFLAGS += ./boxfilter.a
+#LDFLAGS += ./libboxfilter.a
 
 LDFLAGS+= -L$(TOP_DIR)/library/opencv2.4.9
 LDFLAGS+= -lopencv_highgui -lopencv_imgproc -lopencv_core -lz
