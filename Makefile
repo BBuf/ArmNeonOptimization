@@ -32,8 +32,7 @@ OBJ_C := $(patsubst %.c, %.o, $(C_SOURCE))
 
 DEFINE_MACRO := 
 
-CPPFLAGS := -Wall -O3 -fpermissive -fopenmp -mfloat-abi=softfp -std=c++11
-CFLAGS := -Wall -O3
+CPPFLAGS := -Wall -O3 -fpermissive -fopenmp -mfloat-abi=softfp -mfpu=neon -march=armv7-a -std=c++11 
 CPPFLAGS += $(DEP_INC_DIR) $(DEFINE_MACRO) 
 CFLAGS += $(DEP_INC_DIR) $(DEFINE_MACRO) 
 

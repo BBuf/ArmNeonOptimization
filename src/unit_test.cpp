@@ -10,16 +10,16 @@ int main(){
 	int Height = src.rows;
 	int Width = src.cols;
 	int Radius = 3;
-	unsigned char *Src = src.data;
-	unsigned char *Dest = new unsigned char[Height * Width];
+	float *Src = (float *)src.data;
+	float *Dest = new float[Height * Width];
 
 	vector <float> cache;
 	cache.resize(Height * Width);
 
 	int64 st = cvGetTickCount();
 	for(int i=0; i<10; i++){
-		//BoxFilterOrigin(Src, Dest, Width, Height, Radius);
-		BoxFilterCache(Src, Dest, Width, Height, Radius, cache);
+		BoxFilterOrigin(Src, Dest, Width, Height, Radius);
+		//BoxFilterNeonIntrinsics(Src, Dest, Width, Height, Radius, cache);
 		cache.clear();
 		printf("Here!\n");
 	}
