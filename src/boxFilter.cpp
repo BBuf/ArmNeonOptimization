@@ -208,7 +208,7 @@ void BoxFilterNeonIntrinsics(float *Src, float *Dest, int Width, int Height, int
             cachePtr[Stride + X] = sum;
         }
     }
-    printf("111\n");
+
     // shuipin
     vector <float> colsum;
     colsum.resize(Width); 
@@ -227,7 +227,6 @@ void BoxFilterNeonIntrinsics(float *Src, float *Dest, int Width, int Height, int
     //         colsumPtr[X] += colsumPtr[Stride + X];
     //     }
     // }
-    printf("222\n");
     for(int Y = 0; Y < Radius; Y++){
         int Stride = Y * Width;
         float* tmpColSumPtr = colsumPtr;
@@ -253,7 +252,7 @@ void BoxFilterNeonIntrinsics(float *Src, float *Dest, int Width, int Height, int
             tmpCachePtr ++;
         }
     }
-    printf("333\n");
+
     //head
     //Origin
     // for(int Y = 0; Y <= Radius; Y++){

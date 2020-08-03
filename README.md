@@ -1,4 +1,4 @@
-# ArmNeonOptimization
+# aaArmNeonOptimization
 
 ## Environment
 
@@ -28,8 +28,9 @@ make clean; make -j4
 
 |Image Resolution|Radius|Optimization Algorithm|Loop Count|Time|核心数|
 |--|--|--|--|--|---|
-|4032x3024|3|Origin Algorithm|10|3850.83ms|1xA53|
-|4032x3024|3|RowAndCol Split|10|1041.75ms|1xA53|
-|4032x3024|3|RowAndCol Split && Reduce Repeated Computations|10|2599.71ms|1xA53|
-|4032x3024|3|Reduce Cache Miss|10|338.97ms|1xA53|
+|4032x3024|3|Origin Algorithm|10|2313.40ms|1xA53|
+|4032x3024|3|RowAndCol Split|10|784.98ms|1xA53|
+|4032x3024|3|RowAndCol Split && Reduce Repeated Computations|10|2496.55ms|1xA53|
+|4032x3024|3|Reduce Cache Miss|10|302.00ms|1xA53|
+|4032x3024|3|Neon Intrinsics|10|188.37ms|1xA53|
 
