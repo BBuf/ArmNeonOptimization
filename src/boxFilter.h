@@ -14,3 +14,5 @@ void BoxFilterCache(float *Src, float *Dest, int Width, int Height, int Radius, 
 void BoxFilterNeonIntrinsics(float *Src, float *Dest, int Width, int Height, int Radius, vector<float>&cache);
 
 void BoxFilterNeonAssembly(float *Src, float *Dest, int Width, int Height, int Radius, vector<float>&cache);
+
+void BoxFilterNeonAssemblyV1(float *Src, float *Dest, int Width, int Height, int Radius, vector<float>&cache);

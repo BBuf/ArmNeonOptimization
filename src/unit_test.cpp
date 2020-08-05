@@ -28,6 +28,7 @@ int main(){
 		//BoxFilterOpenCV2(Src_float, Dest, Width, Height, Radius, cache);
 		//BoxFilterCache(Src_float, Dest, Width, Height, Radius, cache);
 		//BoxFilterNeonAssembly(Src_float, Dest, Width, Height, Radius, cache);
+		BoxFilterNeonAssemblyV1(Src_float, Dest, Width, Height, Radius, cache);
 		cache.clear();
 		printf("Here!\n");
 	}

@@ -34,4 +34,6 @@ make clean; make -j4
 |4032x3024|3|Reduce Cache Miss|10|302.00ms|1xA53|
 |4032x3024|3|Neon Intrinsics|10|188.37ms|1xA53|
 |4032x3024|3|Neon Assembly|10|187.7ms|1xA53|
+|4032x3024|3|Neon Assembly+pld|10|158.70ms|1xA53|
+
 
