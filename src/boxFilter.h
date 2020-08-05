@@ -12,3 +12,5 @@ void BoxFilterOpenCV2(float *Src, float *Dest, int Width, int Height, int Radius
 void BoxFilterCache(float *Src, float *Dest, int Width, int Height, int Radius, vector<float>&cache);
 
 void BoxFilterNeonIntrinsics(float *Src, float *Dest, int Width, int Height, int Radius, vector<float>&cache);
+
+void BoxFilterNeonAssembly(float *Src, float *Dest, int Width, int Height, int Radius, vector<float>&cache);
