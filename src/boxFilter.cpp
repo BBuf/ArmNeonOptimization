@@ -1056,8 +1056,6 @@ void BoxFilterNeonAssemblyV2(float *Src, float *Dest, int Width, int Height, int
 
             "subs %4, #1              \n"
             "bne  0b                  \n"
-                    
-
 
             // OutputOperands 
             : "=r"(tmpaddPtr), 
