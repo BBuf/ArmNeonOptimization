@@ -1,5 +1,6 @@
 #include "iostream"
 #include "boxFilter.h"
+#include "boxFilterBetter.h"
 #include <opencv2/opencv.hpp>
 using namespace std;
 using namespace cv;
