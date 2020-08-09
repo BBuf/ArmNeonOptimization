@@ -53,3 +53,22 @@ void BoxFilterBetterOrigin(float *Src, float *Dest, int Width, int Height, int R
     }
 }
 
+void BoxFilterBetterNeonIntrinsics(float *Src, float *Dest, int Width, int Height, int Radius){
+    int OutWidth = Width - Radius + 1;
+    int OutHeight = Height - Radius + 1;
+    float *kernel = new float[Radius*Radius];
+    for(int i = 0; i < Radius*Radius; i++){
+        kernel[i] = 1.0;
+    }
+    float *k0 = kernel;
+    float *k1 = kernel + 3;
+    float *k2 = kernel + 6;
+    float* r0 = Src;
+    float* r1 = Src + Width;
+    float* r2 = Src + Width * 2;
+    float* r3 = Src + Width * 3;
+    float* outptr = Dest;
+    float* outptr2 = Dest + OutWidth;
+    int i = 0;
+    
+}
