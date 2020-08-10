@@ -6,3 +6,5 @@ using namespace std;
 void BoxFilterBetterOrigin(float *Src, float *Dest, int Width, int Height, int Radius);
 
 void BoxFilterBetterNeonIntrinsics(float *Src, float *Dest, int Width, int Height, int Radius);
+
+void BoxFilterBetterNeonAssembly(float *Src, float *Dest, int Width, int Height, int Radius);
