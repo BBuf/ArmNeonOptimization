@@ -37,6 +37,8 @@ make clean; make -j4
 |4032x3024|3|Neon Assembly+pld|10|158.70ms|1xA53|
 |4032x3024|3|Neon Assembly+Diff Predeal|10|181.40ms|1xA53|
 |4032x3024|3|Neon AssemblyV2|10|145.92ms|1xA53|
+|4032x3024|3|NCNN Origin|10|279.10ms|1xA53|
+|4032x3024|3|NCNN Neon Intrinsics|10||1xA53|
 
 
 

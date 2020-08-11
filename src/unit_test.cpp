@@ -58,7 +58,7 @@ int main(){
 
 	int64 st = cvGetTickCount();
 	for(int i=0; i<10; i++){
-		BoxFilterBetterOrigin(Src_float, Dest, Width, Height, Radius);
+		BoxFilterBetterNeonIntrinsics(Src_float, Dest, Width, Height, Radius);
 		printf("Here!\n");
 	}
 	double duration = (cv::getTickCount() - st) / cv::getTickFrequency() * 100;
