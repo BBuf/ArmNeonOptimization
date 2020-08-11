@@ -1,7 +1,9 @@
+#if __ARM_NEON
+#include <arm_neon.h>
+#endif // __ARM_NEON
 #include "boxFilterBetter.h"
 
 void BoxFilterBetterOrigin(float *Src, float *Dest, int Width, int Height, int Radius){
-    //only 3x3
     int OutWidth = Width - Radius + 1;
     int OutHeight = Height - Radius + 1;
     float *kernel = new float[Radius*Radius];
@@ -51,13 +53,13 @@ void BoxFilterBetterOrigin(float *Src, float *Dest, int Width, int Height, int R
             outptr2++;
         }
 
-        r0 += 2 + w;
-        r1 += 2 + w;
-        r2 += 2 + w;
-        r3 += 2 + w;
+        r0 += 2 + Width;
+        r1 += 2 + Width;
+        r2 += 2 + Width;
+        r3 += 2 + Width;
 
-        outptr += outw;
-        outptr2 += outw;
+        outptr += OutWidth;
+        outptr2 += OutWidth;
     }
 
     for(; i < OutHeight; i++){
@@ -73,7 +75,7 @@ void BoxFilterBetterOrigin(float *Src, float *Dest, int Width, int Height, int R
             sum1 += r2[0] * k2[0];
             sum1 += r2[1] * k2[1];
             sum1 += r2[2] * k2[2];
-            *outptr = sum;
+            *outptr = sum1;
             r0++;
             r1++;
             r2++;
@@ -145,13 +147,13 @@ void BoxFilterBetterNeonIntrinsics(float *Src, float *Dest, int Width, int Heigh
             outptr2++;
         }
         
-        r0 += 2 + w;
-        r1 += 2 + w;
-        r2 += 2 + w;
-        r3 += 2 + w;
+        r0 += 2 + Width;
+        r1 += 2 + Width;
+        r2 += 2 + Width;
+        r3 += 2 + Width;
 
-        outptr += outw;
-        outptr2 += outw;
+        outptr += OutWidth;
+        outptr2 += OutWidth;
     }
 
     for(; i < OutHeight; i++){
@@ -216,107 +218,107 @@ void BoxFilterBetterNeonAssembly(float *Src, float *Dest, int Width, int Height,
         //neon assembly
         if(nn > 0){
             asm volatile(
-                    "pld        [%3, #192]          \n" // 预读取指令, 64x3=192
-                    "vld1.f32   {d18-d20}, [%3 :64] \n" // r0, :64代表内存对齐，这里写成q就是q9,q10
-                    "add        %3, #16             \n" // 一个float为4个字节，r0加载了6个float即6x4=32个字节，
-                                                        //r0这里移动了16个字节，即[a,b,c,d,e,f]，即处理了[a,b,c],
-                                                        //[b,c,d],[c,d,e],[d,e,f]，然后r0移动到e位置
-                    "vext.32    q11, q9, q10, #1    \n" // [0,d18]
-                    "vext.32    q12, q9, q10, #2    \n" // [0,d20]
+                "pld        [%3, #192]          \n" // 预读取指令, 64x3=192
+                "vld1.f32   {d18-d20}, [%3 :64] \n" // r0, :64代表内存对齐，这里写成q就是q9,q10
+                "add        %3, #16             \n" // 一个float为4个字节，r0加载了6个float即6x4=32个字节，
+                                                    //r0这里移动了16个字节，即[a,b,c,d,e,f]，即处理了[a,b,c],
+                                                    //[b,c,d],[c,d,e],[d,e,f]，然后r0移动到e位置
+                "vext.32    q11, q9, q10, #1    \n" // [0,d18]
+                "vext.32    q12, q9, q10, #2    \n" // [0,d20]
 
-                    "0:                             \n"
+                "0:                             \n"
 
-                    "vmul.f32   q7, q9, %e14[0]     \n" // [a*k012_low,b*k012_low,c*k012_low,d*k012_low]
+                "vmul.f32   q7, q9, %e14[0]     \n" // [a*k012_low,b*k012_low,c*k012_low,d*k012_low]
 
-                    "vmul.f32   q6, q11, %e14[1]    \n" // []
+                "vmul.f32   q6, q11, %e14[1]    \n" // []
 
-                    "vmla.f32   q13, q12, %f14[0]   \n" // 
+                "vmla.f32   q13, q12, %f14[0]   \n" // 
 
-                    "pld        [%4, #192]          \n"
-                    "vld1.f32   {d18-d20}, [%4]     \n" // r1
-                    "add        %4, #16             \n"
+                "pld        [%4, #192]          \n"
+                "vld1.f32   {d18-d20}, [%4]     \n" // r1
+                "add        %4, #16             \n"
 
-                    "vmla.f32   q7, q9, %e15[0]     \n"
+                "vmla.f32   q7, q9, %e15[0]     \n"
 
-                    "vext.32    q11, q9, q10, #1    \n"
-                    "vext.32    q12, q9, q10, #2    \n"
+                "vext.32    q11, q9, q10, #1    \n"
+                "vext.32    q12, q9, q10, #2    \n"
 
-                    "vmla.f32   q6, q11, %e15[1]    \n"
-                    "vmla.f32   q13, q12, %f15[0]   \n"
+                "vmla.f32   q6, q11, %e15[1]    \n"
+                "vmla.f32   q13, q12, %f15[0]   \n"
 
-                    "vmul.f32   q8, q9, %e14[0]     \n"
+                "vmul.f32   q8, q9, %e14[0]     \n"
 
-                    "vmul.f32   q14, q11, %e14[1]   \n"
-                    "vmla.f32   q15, q12, %f14[0]   \n"
+                "vmul.f32   q14, q11, %e14[1]   \n"
+                "vmla.f32   q15, q12, %f14[0]   \n"
 
-                    "pld        [%5, #192]          \n"
-                    "vld1.f32   {d18-d20}, [%5 :64] \n" // r2
-                    "add        %5, #16             \n"
+                "pld        [%5, #192]          \n"
+                "vld1.f32   {d18-d20}, [%5 :64] \n" // r2
+                "add        %5, #16             \n"
 
-                    "vmla.f32   q7, q9, %e16[0]     \n"
+                "vmla.f32   q7, q9, %e16[0]     \n"
 
-                    "vext.32    q11, q9, q10, #1    \n"
-                    "vext.32    q12, q9, q10, #2    \n"
+                "vext.32    q11, q9, q10, #1    \n"
+                "vext.32    q12, q9, q10, #2    \n"
 
-                    "vmla.f32   q6, q11, %e16[1]    \n"
-                    "vmla.f32   q13, q12, %f16[0]   \n"
+                "vmla.f32   q6, q11, %e16[1]    \n"
+                "vmla.f32   q13, q12, %f16[0]   \n"
 
-                    "vmla.f32   q8, q9, %e15[0]     \n"
-                    "vmla.f32   q14, q11, %e15[1]   \n"
-                    "vmla.f32   q15, q12, %f15[0]   \n"
+                "vmla.f32   q8, q9, %e15[0]     \n"
+                "vmla.f32   q14, q11, %e15[1]   \n"
+                "vmla.f32   q15, q12, %f15[0]   \n"
 
-                    "pld        [%6, #192]          \n"
-                    "vld1.f32   {d18-d20}, [%6]     \n" // r3
-                    "add        %6, #16             \n"
+                "pld        [%6, #192]          \n"
+                "vld1.f32   {d18-d20}, [%6]     \n" // r3
+                "add        %6, #16             \n"
 
-                    "vmla.f32   q8, q9, %e16[0]     \n"
+                "vmla.f32   q8, q9, %e16[0]     \n"
 
-                    "vext.32    q11, q9, q10, #1    \n"
-                    "vext.32    q12, q9, q10, #2    \n"
+                "vext.32    q11, q9, q10, #1    \n"
+                "vext.32    q12, q9, q10, #2    \n"
 
-                    "vmla.f32   q14, q11, %e16[1]   \n"
-                    "vmla.f32   q15, q12, %f16[0]   \n"
+                "vmla.f32   q14, q11, %e16[1]   \n"
+                "vmla.f32   q15, q12, %f16[0]   \n"
 
-                    "vadd.f32   q7, q7, q6          \n"
+                "vadd.f32   q7, q7, q6          \n"
 
-                    "pld        [%3, #192]          \n"
-                    "vld1.f32   {d18-d20}, [%3 :64] \n" // r0
+                "pld        [%3, #192]          \n"
+                "vld1.f32   {d18-d20}, [%3 :64] \n" // r0
 
-                    "vadd.f32   q8, q8, q14         \n"
-                    "vadd.f32   q7, q7, q13         \n"
-                    "vadd.f32   q8, q8, q15         \n"
+                "vadd.f32   q8, q8, q14         \n"
+                "vadd.f32   q7, q7, q13         \n"
+                "vadd.f32   q8, q8, q15         \n"
 
-                    "vext.32    q11, q9, q10, #1    \n"
-                    "vext.32    q12, q9, q10, #2    \n"
+                "vext.32    q11, q9, q10, #1    \n"
+                "vext.32    q12, q9, q10, #2    \n"
 
-                    "add        %3, #16             \n"
+                "add        %3, #16             \n"
 
-                    "vst1.f32   {d14-d15}, [%1]!    \n"
-                    "vst1.f32   {d16-d17}, [%2]!    \n"
+                "vst1.f32   {d14-d15}, [%1]!    \n"
+                "vst1.f32   {d16-d17}, [%2]!    \n"
 
-                    "subs       %0, #1              \n"
-                    "bne        0b                  \n"
+                "subs       %0, #1              \n"
+                "bne        0b                  \n"
 
-                    "sub        %3, #16             \n"
-                    : "=r"(nn),      // %0
-                    "=r"(outptr),  // %1
-                    "=r"(outptr2), // %2
-                    "=r"(r0),      // %3
-                    "=r"(r1),      // %4
-                    "=r"(r2),      // %5
-                    "=r"(r3)       // %6
-                    : "0"(nn),
-                    "1"(outptr),
-                    "2"(outptr2),
-                    "3"(r0),
-                    "4"(r1),
-                    "5"(r2),
-                    "6"(r3),
-                    "w"(k012), // %14
-                    "w"(k345), // %15
-                    "w"(k678), // %16
-                    : "cc", "memory", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15");
-            }
+                "sub        %3, #16             \n"
+                : "=r"(nn),      // %0
+                "=r"(outptr),  // %1
+                "=r"(outptr2), // %2
+                "=r"(r0),      // %3
+                "=r"(r1),      // %4
+                "=r"(r2),      // %5
+                "=r"(r3)       // %6
+                : "0"(nn),
+                "1"(outptr),
+                "2"(outptr2),
+                "3"(r0),
+                "4"(r1),
+                "5"(r2),
+                "6"(r3),
+                "w"(k012), // %14
+                "w"(k345), // %15
+                "w"(k678) // %16
+                : "cc", "memory", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+            );
         }
 
         for(; remain > 0; i--){
@@ -352,13 +354,13 @@ void BoxFilterBetterNeonAssembly(float *Src, float *Dest, int Width, int Height,
             outptr2++;
         }
         
-        r0 += 2 + w;
-        r1 += 2 + w;
-        r2 += 2 + w;
-        r3 += 2 + w;
+        r0 += 2 + Width;
+        r1 += 2 + Width;
+        r2 += 2 + Width;
+        r3 += 2 + Width;
 
-        outptr += outw;
-        outptr2 += outw;
+        outptr += OutWidth;
+        outptr2 += OutWidth;
     }
 
     for(; i < OutHeight; i++){
@@ -371,14 +373,13 @@ void BoxFilterBetterNeonAssembly(float *Src, float *Dest, int Width, int Height,
                 "vld1.f32   {d16-d18}, [%2]     \n" // r0
                 "add        %2, #16             \n" //16个字节
 
-                "vext.32    q10, q8, q9, #1     \n"//[a+b]
-                "vext.32    q11, q8, q9, #2     \n"//[c+d]
+                "vext.32    q10, q8, q9, #1     \n"//
+                "vext.32    q11, q8, q9, #2     \n"//
 
                 "0:                             \n"
 
                 "vmul.f32   q7, q8, %e10[0]     \n"
 
-                "vand       q14, %q13, %q13     \n" // q14 = _bias0
                 "vmul.f32   q13, q10, %e10[1]   \n"
                 "vmla.f32   q14, q11, %f10[0]   \n"
 
@@ -434,8 +435,7 @@ void BoxFilterBetterNeonAssembly(float *Src, float *Dest, int Width, int Height,
                 "4"(r2),
                 "w"(k012), // %10
                 "w"(k345), // %11
-                "w"(k678), // %12
-                "w"(_bias0)  // %13
+                "w"(k678) // %12
                 : "cc", "memory", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15");
         }
 
