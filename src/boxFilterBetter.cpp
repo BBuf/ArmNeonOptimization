@@ -210,23 +210,27 @@ void BoxFilterBetterNeonAssembly(float *Src, float *Dest, int Width, int Height,
         int nn = OutWidth >> 2;
         int remain = OutWidth - (nn << 2);
 
+
+        //q9->[d18, d19]
+        //q10->[d20, 0]
         //neon assembly
         if(nn > 0){
             asm volatile(
-                    "pld        [%3, #192]          \n" // cache line, 64x3=192
-                    "vld1.f32   {d18-d20}, [%3 :64] \n" // r0
-                    "add        %3, #16             \n" //  
-
-                    "vext.32    q11, q9, q10, #1    \n" 
-                    "vext.32    q12, q9, q10, #2    \n"
+                    "pld        [%3, #192]          \n" // 预读取指令, 64x3=192
+                    "vld1.f32   {d18-d20}, [%3 :64] \n" // r0, :64代表内存对齐，这里写成q就是q9,q10
+                    "add        %3, #16             \n" // 一个float为4个字节，r0加载了6个float即6x4=32个字节，
+                                                        //r0这里移动了16个字节，即[a,b,c,d,e,f]，即处理了[a,b,c],
+                                                        //[b,c,d],[c,d,e],[d,e,f]，然后r0移动到e位置
+                    "vext.32    q11, q9, q10, #1    \n" // [0,d18]
+                    "vext.32    q12, q9, q10, #2    \n" // [0,d20]
 
                     "0:                             \n"
 
-                    "vmul.f32   q7, q9, %e14[0]     \n"
+                    "vmul.f32   q7, q9, %e14[0]     \n" // [a*k012_low,b*k012_low,c*k012_low,d*k012_low]
 
-                    "vand       q13, %q17, %q17     \n" // q13 = _bias0
-                    "vmul.f32   q6, q11, %e14[1]    \n"
-                    "vmla.f32   q13, q12, %f14[0]   \n"
+                    "vmul.f32   q6, q11, %e14[1]    \n" // []
+
+                    "vmla.f32   q13, q12, %f14[0]   \n" // 
 
                     "pld        [%4, #192]          \n"
                     "vld1.f32   {d18-d20}, [%4]     \n" // r1
@@ -242,7 +246,6 @@ void BoxFilterBetterNeonAssembly(float *Src, float *Dest, int Width, int Height,
 
                     "vmul.f32   q8, q9, %e14[0]     \n"
 
-                    "vand       q15, %q17, %q17     \n" // q15 = _bias0
                     "vmul.f32   q14, q11, %e14[1]   \n"
                     "vmla.f32   q15, q12, %f14[0]   \n"
 
@@ -310,9 +313,8 @@ void BoxFilterBetterNeonAssembly(float *Src, float *Dest, int Width, int Height,
                     "5"(r2),
                     "6"(r3),
                     "w"(k012), // %14
-                    "w"(k012), // %15
-                    "w"(k012), // %16
-                    "w"(_bias0)  // %17
+                    "w"(k345), // %15
+                    "w"(k678), // %16
                     : "cc", "memory", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15");
             }
         }
@@ -332,9 +334,9 @@ void BoxFilterBetterNeonAssembly(float *Src, float *Dest, int Width, int Height,
             sum2 = vmlaq_f32(sum2, r20, k345);
             sum2 = vmlaq_f32(sum2, r30, k678);
 
-            //[a,b,c,d]->[a+b,c+d]
+            //[a,b,c,d]->[a,c]+[b,d]->[a+b,c+d]
             float32x2_t _ss = vadd_f32(vget_low_f32(sum1), vget_high_f32(sum1));
-            //[e,f,g,h]->[e+f,g+h]
+            //[e,f,g,h]->[e,g]+[f,h]->[e+f,g+h]
             float32x2_t _ss2 = vadd_f32(vget_low_f32(sum2), vget_high_f32(sum2));
             //[a+b+c+d,e+f+g+h]
             float32x2_t _sss2 = vpadd_f32(_ss, _ss2);
@@ -367,7 +369,7 @@ void BoxFilterBetterNeonAssembly(float *Src, float *Dest, int Width, int Height,
             asm volatile(
                 "pld        [%2, #192]          \n"
                 "vld1.f32   {d16-d18}, [%2]     \n" // r0
-                "add        %2, #16             \n" //??
+                "add        %2, #16             \n" //16个字节
 
                 "vext.32    q10, q8, q9, #1     \n"//[a+b]
                 "vext.32    q11, q8, q9, #2     \n"//[c+d]
