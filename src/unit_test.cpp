@@ -60,9 +60,15 @@ int main(){
 	for(int i=0; i<10; i++){
 		//BoxFilterBetterOrigin(Src_float, Dest, Width, Height, Radius);
 		//BoxFilterBetterNeonIntrinsics(Src_float, Dest, Width, Height, Radius);
-		BoxFilterBetterNeonAssembly(Src_float, Dest, Width, Height, Radius);
+		//BoxFilterBetterNeonAssembly(Src_float, Dest, Width, Height, Radius);
+		BoxFilterBetterNeonAssemblyV2(Src_float, Dest, Width, Height, Radius);
 		printf("Here!\n");
 	}
+
+	for(int i = 0; i < 20; i++){
+		printf("%.5f ", Dest[i]);
+	}
+	printf("\n");
 	double duration = (cv::getTickCount() - st) / cv::getTickFrequency() * 100;
 	printf("%.5f\n", duration);
 	return 0;
