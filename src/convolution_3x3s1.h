@@ -1,5 +1,11 @@
 //src conv kernel
-void ConvolutionalLayerArm3x3s1::conv3x3s1_neon(float *const &src, const int &inw, const int &inh,  const int &inch, float *const &kernel, const int &kw, 
+#include <vector>
+#include <iostream>
+#define USE_NEON 0
+#define USE_OMP 0
+using namespace std;
+
+void conv3x3s1_neon(float *const &src, const int &inw, const int &inh,  const int &inch, float *const &kernel, const int &kw, 
                         const int &kh, float* &dest, const int &outw, const int &outh, const int &outch){
     int cc_outch = outch >> 1;
     int cc_remain_outch = outch << 1;
@@ -57,11 +63,12 @@ void ConvolutionalLayerArm3x3s1::conv3x3s1_neon(float *const &src, const int &in
 
 
 #if USE_NEON
+
+#if __aarch64__
+                throw Exception(1, "Error: armv8 temporarily not supported!", __FILE__, __LINE__, __FUNCTION__);
+else
                 //assembly
                 if(nn > 0){
-#if __aarch64__
-
-else
                     asm volatile(
                         //
                         "0:                             \n"
@@ -404,10 +411,11 @@ else
 #endif
 
 #if USE_NEON
-                if(nn > 0){
-#if __aarch64__
 
+#if __aarch64__
+                throw Exception(1, "Error: armv8 temporarily not supported!", __FILE__, __LINE__, __FUNCTION__);
 #else
+                if(nn > 0){
                   asm  volatile(
                        "0:                             \n"
 
@@ -425,7 +433,72 @@ else
                         "pld        [%2, #128]          \n"
                         "vld1.f32   {d14-d15}, [%2]     \n"
 
+                        // q8[a, b, c, d] 和 k012的第一个元素相乘得到q12
+                        "vmul.f32   q12, q8, %e12[0]    \n"
+                        // q8[a, b, c, d] 和 k012_next的第一个元素相乘得到q13
+                        "vmul.f32   q13, q8, %e15[0]    \n"
+
+                        // q8=[a, b, c, d]
+                        // q9=[e, f, *, *]
+                        // q10=[b, c, d, e]
+                        "vext.32    q10, q8, q9, #1     \n"
+                        // q11=[c, d, e, f]
+                        "vext.32    q11, q8, q9, #2     \n"
+                        // q10=[b, c, d, e]和k012的第二个元素相乘并累加到q6
+                        "vmla.f32   q6, q10, %e12[1]    \n"
+                        // q10=[b, c, d, e]和k012_next的第三个元素相乘并累加到q7
+                        "vmla.f32   q7, q10, %e15[1]    \n"
+
+                        // q11=[c, d, e, f]和k012的第三个元素相乘并累加到q12
+                        "vmla.f32   q12, q11, %f12[0]   \n"
+                        // q11=[c, d, e, f]和k012_next的第三个元素相乘并累加到q13
+                        "vmla.f32   q13, q11, %f15[0]   \n"
+
+                        //r1
+                        "pld        [%4, #192]          \n"
+                        "vld1.f32   {d16-d18}, [%4]     \n" 
+                        "add        %4, #16             \n"
+
+                        "vmla.f32   q6, q8, %e13[0]     \n"
+                        "vmla.f32   q7, q8, %e16[0]     \n"
+
+                        "vext.32    q10, q8, q9, #1     \n"
+                        "vext.32    q11, q8, q9, #2     \n"
+
+                        "vmla.f32   q6, q11, %f13[0]    \n"
+                        "vmla.f32   q7, q11, %f16[0]    \n"
+
+                        "vmla.f32   q12, q10, %e13[1]   \n"
+                        "vmla.f32   q13, q10, %e16[1]   \n"
                         
+                        //r2
+                        "pld        [%5, #192]          \n"
+                        "vld1.f32   {d16-d18}, [%5]     \n" 
+                        "add        %5, #16             \n"
+
+                        "vmla.f32   q12, q8, %e14[0]    \n"
+                        "vmla.f32   q13, q8, %e17[0]    \n"
+
+                        "vext.32    q10, q8, q9, #1     \n"
+                        "vext.32    q11, q8, q9, #2     \n"
+
+                        "vmla.f32   q6, q10, %e14[1]    \n"
+                        "vmla.f32   q7, q10, %e17[1]    \n"
+
+                        "vmla.f32   q12, q11, %f14[0]   \n"
+                        "vmla.f32   q13, q11, %f17[0]   \n"
+
+                        //sum1&&sum2
+                        "vadd.f32   q6, q6, q12         \n"
+                        "vadd.f32   q7, q7, q13         \n"
+
+                        //store
+                        "vst1.f32   {d12-d13}, [%1]!    \n"
+
+                        "vst1.f32   {d14-d15}, [%2]!    \n"
+
+                        "subs       %0, #1              \n"
+                        "bne        0b                  \n"
 
                         // OutputOperands 
                        : "=r"(nn),      // %0
@@ -447,10 +520,10 @@ else
                         "w"(k012_next), // %15
                         "w"(k345_next), // %16
                         "w"(k678_next)  // %17
-                        : "cc", "memory", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15");
+                        : "cc", "memory", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13");
                   );
-#endif
                 }
+#endif
 
 #endif
 
@@ -539,9 +612,10 @@ else
     }
 
     //deal one conv output
-#ifdef USE_OMP
+#if USE_OMP
 #pragma omp parallel for num_threads(OMP_THREAD)
 #endif 
+
     for(int cc = cc_remain_outch; cc < outch; cc++){
         int c = cc;
         float *dest0 = dest + c * out_size;
@@ -580,9 +654,113 @@ else
 
 #if USE_NEON
 
+#if  __aarch64__
+                throw Exception(1, "Error: armv8 temporarily not supported!", __FILE__, __LINE__, __FUNCTION__);
+#else
                 if(nn > 0){
+                    asm volatile(
+                        "0:                             \n"
+                        // r0 = [a, b, c, d, e, f]
+                        "pld        [%3, #192]          \n"
+                        "vld1.f32   {d18-d20}, [%3 :64] \n" 
+                        "add        %3, #16             \n"
+                        
+                        // q9 = [a, b, c, d]
+                        // q10 = [e, f, *, *]
+                        // q11 = [b, c, d, e]
+                        "vext.32    q11, q9, q10, #1    \n"
+                        // q12 = [c, d, e, f]
+                        "vext.32    q12, q9, q10, #2    \n"
 
+                        //sum0
+                        "pld        [%1, #128]          \n"
+                        "vld1.f32   {d14-d15}, [%1 :64] \n"
+                        // sum1
+                        "pld        [%2, #128]          \n"
+                        "vld1.f32   {d16-d17}, [%2]     \n" 
+
+                        //分别和k012的对应元素相乘
+                        "vmla.f32   q7, q9, %e14[0]     \n"
+                        "vmul.f32   q6, q11, %e14[1]    \n"
+                        "vmul.f32   q13, q12, %f14[0]   \n"
+
+                        // r1 = [a1, b1, c1, d1, e1, f1]
+                        "pld        [%4, #192]          \n"
+                        "vld1.f32   {d18-d20}, [%4]     \n" 
+                        "add        %4, #16             \n"
+
+                        "vext.32    q11, q9, q10, #1    \n"
+                        "vext.32    q12, q9, q10, #2    \n"
+
+                        "vmla.f32   q7, q9, %e15[0]     \n"
+                        "vmla.f32   q6, q11, %e15[1]    \n"
+                        "vmla.f32   q13, q12, %f15[0]   \n"
+
+                        "vmla.f32   q8, q9, %e14[0]     \n"
+                        "vmul.f32   q14, q11, %e14[1]   \n"
+                        "vmul.f32   q15, q12, %f14[0]   \n"
+
+                        // r2 = [a2, b2, c2, d2, e2, f2]
+                        "pld        [%5, #192]          \n"
+                        "vld1.f32   {d18-d20}, [%5 :64] \n" 
+                        "add        %5, #16             \n"
+
+                        "vext.32    q11, q9, q10, #1    \n"
+                        "vext.32    q12, q9, q10, #2    \n"
+
+                        "vmla.f32   q7, q9, %e16[0]     \n"
+                        "vmla.f32   q6, q11, %e16[1]    \n"
+                        "vmla.f32   q13, q12, %f16[0]   \n"
+
+                        "vmla.f32   q8, q9, %e15[0]     \n"
+                        "vmla.f32   q14, q11, %e15[1]   \n"
+                        "vmla.f32   q15, q12, %f15[0]   \n"
+
+                        // r3 = [a3, b3, c3, d3, e3, f3]
+                        "pld        [%6, #192]          \n"
+                        "vld1.f32   {d18-d20}, [%6]     \n" 
+                        "add        %6, #16             \n"
+
+                        "vext.32    q11, q9, q10, #1    \n"
+                        "vext.32    q12, q9, q10, #2    \n"
+
+                        "vmla.f32   q8, q9, %e16[0]     \n"
+                        "vmla.f32   q14, q11, %e16[1]   \n"
+                        "vmla.f32   q15, q12, %f16[0]   \n"
+
+                        "vadd.f32   q7, q7, q6          \n"
+                        "vadd.f32   q7, q7, q13         \n"
+                        "vadd.f32   q8, q8, q14         \n"
+                        "vadd.f32   q8, q8, q15         \n"
+
+                        "vst1.f32   {d14-d15}, [%1]!    \n"
+                        "vst1.f32   {d16-d17}, [%2]!    \n"
+
+                        "subs       %0, #1              \n"
+                        "bne        0b                  \n"
+
+
+                        : "=r"(nn),      // %0
+                        "=r"(destptr0),  // %1
+                        "=r"(destptr1), // %2
+                        "=r"(r0),      // %3
+                        "=r"(r1),      // %4
+                        "=r"(r2),      // %5
+                        "=r"(r3)       // %6
+                        : "0"(nn),
+                        "1"(destptr0),
+                        "2"(destptr1),
+                        "3"(r0),
+                        "4"(r1),
+                        "5"(r2),
+                        "6"(r3),
+                        "w"(k012), // %14
+                        "w"(k345), // %15
+                        "w"(k678)  // %16
+                        : "cc", "memory", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15");
+                    );
                 } 
+#endif
 
 #endif
 
@@ -670,9 +848,76 @@ else
 
 #if USE_NEON
 
+#if __aarch64__
+                throw Exception(1, "Error: armv8 temporarily not supported!", __FILE__, __LINE__, __FUNCTION__);
+else    
                 if(nn > 0){
+                    "0:                             \n"
+                    // r0 = [a, b, c, d, e, f]
+                    "pld        [%2, #192]          \n"
+                    "vld1.f32   {d16-d18}, [%2]     \n" 
+                    "add        %2, #16             \n"
 
+                    "vext.32    q10, q8, q9, #1     \n"
+                    "vext.32    q11, q8, q9, #2     \n"
+
+                    //sum0
+                    "pld        [%1, #128]          \n"
+                    "vld1.f32   {d14-d15}, [%1]     \n"
+
+                    "vmla.f32   q7, q8, %e10[0]     \n"
+                    "vmul.f32   q13, q10, %e10[1]   \n"
+                    "vmul.f32   q14, q11, %f10[0]   \n"
+
+                    // r1 = [a1, b1, c1, d1, e1, f1]
+                    "pld        [%3, #192]          \n"
+                    "vld1.f32   {d16-d18}, [%3]     \n"
+                    "add        %3, #16             \n"
+
+                    "vext.32    q10, q8, q9, #1     \n"
+                    "vext.32    q11, q8, q9, #2     \n"
+                    
+                    "vmla.f32   q7, q8, %e11[0]     \n"
+                    "vmla.f32   q13, q10, %e11[1]   \n"
+                    "vmla.f32   q14, q11, %f11[0]   \n"
+
+                    // r2 = [a2, b2, c2, d2, e2, f2]
+                    "pld        [%4, #192]          \n"
+                    "vld1.f32   {d16-d18}, [%4]     \n"
+                    "add        %4, #16             \n"
+
+                    "vext.32    q10, q8, q9, #1     \n"
+                    "vext.32    q11, q8, q9, #2     \n"
+
+                    "vmla.f32   q7, q8, %e12[0]     \n"
+                    "vmla.f32   q13, q10, %e12[1]   \n"
+                    "vmla.f32   q14, q11, %f12[0]   \n"
+
+                    "vadd.f32   q7, q7, q13         \n"
+                    "vadd.f32   q7, q7, q14         \n"
+
+                    "vst1.f32   {d14-d15}, [%1]!    \n"
+
+                    "subs       %0, #1              \n"
+                    "bne        0b                  \n"
+
+                    : "=r"(nn),     // %0
+                    "=r"(destptr0), // %1
+                    "=r"(r0),     // %2
+                    "=r"(r1),     // %3
+                    "=r"(r2)      // %4
+                    : "0"(nn),
+                    "1"(destptr0),
+                    "2"(r0),
+                    "3"(r1),
+                    "4"(r2),
+                    "w"(k012), // %10
+                    "w"(k345), // %11
+                    "w"(k678)  // %12
+                    : "cc", "memory", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15");
                 } 
+#endif
+                
 
 #endif
 
@@ -691,10 +936,10 @@ else
 #if __aarch64__
                     *destptr0 = vaddvq_f32(sum0);
 #else
-                    float32x2_t _ss = vadd_f32(vget_low_f32(sum0), vget_high_f32(sum0));
-                    _ss = vpadd_fp32(_ss, _ss);
+                    float32x2_t _ss0 = vadd_f32(vget_low_f32(sum0), vget_high_f32(sum0));
+                    _ss0 = vpadd_fp32(_ss0, _ss0);
 
-                    *destptr0 = vget_lane_f32(_ss, 0);
+                    *destptr0 = vget_lane_f32(_ss0, 0);
 #endif
 
 #else
