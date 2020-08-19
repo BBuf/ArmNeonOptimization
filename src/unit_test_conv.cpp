@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stdio.h>
+#define CATCH_CONFIG_MAIN
 #include <catch.h>
 #include <convolution_3x3s1.h>
 using namespace std;
