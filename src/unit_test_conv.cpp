@@ -24,7 +24,7 @@ float c[200]={-0.0073,  0.1526, -0.0270, -0.0072,  0.0659,  0.1265, 0.1657, -0.0
             -0.1398, -0.1093,  0.1475, 0.1383,  0.0858, -0.0167, -0.0942, -0.0131, -0.1723,
             0.0643,  0.1751, -0.0905, -0.1898, -0.0066,  0.0137, -0.0252,  0.0558,  0.1431};
 
-int main(){
+void main(int argc, char *argv[]){
     const int inw = 5;
     const int inh = 5;
     const int inch = 3;
@@ -62,5 +62,5 @@ int main(){
 
     printf("\n");
 
-    return 0;
+    return Catch::Session().run(argc, argv);
 }
