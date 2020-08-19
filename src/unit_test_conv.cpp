@@ -1,9 +1,18 @@
 #include <iostream>
 #include <stdio.h>
-#define CATCH_CONFIG_MAIN
-#include <catch.h>
+// #define CATCH_CONFIG_MAIN
+// #include <catch.h>
 #include <convolution_3x3s1.h>
 using namespace std;
+
+bool cmp(float a, float b){
+    if(fabs(a - b) < 0.0001){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
 
 float a[100]={-1.1268, -1.0129, -1.6802,  0.4670,  0.6153, 0.3901, -1.0640, -0.2936, -1.2315,  0.5493,
             -0.0420, -0.2721,  0.1954, -0.2216,  0.6879, -0.2050, -1.0803, -0.3176,  0.5296,  0.3935,
@@ -24,7 +33,7 @@ float c[200]={-0.0073,  0.1526, -0.0270, -0.0072,  0.0659,  0.1265, 0.1657, -0.0
             -0.1398, -0.1093,  0.1475, 0.1383,  0.0858, -0.0167, -0.0942, -0.0131, -0.1723,
             0.0643,  0.1751, -0.0905, -0.1898, -0.0066,  0.0137, -0.0252,  0.0558,  0.1431};
 
-void main(int argc, char *argv[]){
+int main(){
     const int inw = 5;
     const int inh = 5;
     const int inch = 3;
@@ -53,14 +62,18 @@ void main(int argc, char *argv[]){
     conv3x3s1_neon(src, inw, inh, inch, kernel, kw, kh, dest, outw, outh, outch);
 
     for(int i = 0; i < outw * outh * outch ; i++){
-        REQUIRE((dest[i] - c[i] < 0.001));
+        bool flag = cmp(dest[i], c[i]);
+        if(flag == false){
+            printf("WA: %d\n", i);
+            printf("Expected: %.5f, ConvOutput: %.5f\n", c[i], dest[i]);
+        }
     }
 
-    for(int i = 0; i < 10; i++){
+    for(int i = 0; i < outw * outh * outch; i++){
         printf("%.5f ", dest[i]);
     }
 
     printf("\n");
 
-    return Catch::Session().run(argc, argv);
+    return 0;
 }
