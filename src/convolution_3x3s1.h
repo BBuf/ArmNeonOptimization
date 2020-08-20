@@ -22,15 +22,14 @@ void conv3x3s1_neon(float *const &src, const int &inw, const int &inh,  const in
         float *dest0 = dest + c * out_size;
         float *dest1 =  dest + (c + 1) * out_size;
 
-        for(int j = 0; j < out_size; j++) dest0[c * out_size + j] = 0.f;
-        for(int j = 0; j < out_size; j++) dest1[(c + 1) * out_size + j] = 0.f;
+        for(int j = 0; j < out_size; j++) dest0[j] = 0.f;
+        for(int j = 0; j < out_size; j++) dest1[j] = 0.f;
 
         //two output rely on two kernel
-        float *k0 = kernel + c * 3 * 3;
-        float *k1 = kernel + (c + 1) * 3 * 3;
+        float *k0 = kernel + c * inch * 3 * 3;
+        float *k1 = kernel + (c + 1) * inch * 3 * 3;
 
         for(int q = 0; q < inch; q++){
-            
             float* destptr0 = dest0;
             float* destptr1 = dest1;
             float* destptr0_next = destptr0 + outw;
@@ -397,6 +396,7 @@ else
                 r1 += 2 + inw;
                 r2 += 2 + inw;
                 r3 += 2 + inw;
+                
                 destptr0 += outw;
                 destptr1 += outw;
                 destptr0_next += outw;
@@ -599,7 +599,6 @@ else
                     r0++;
                     r1++;
                     r2++;
-                    r3++;
                     destptr0++;
                     destptr1++;
                 }
@@ -608,10 +607,10 @@ else
                 r1 += 2;
                 r2 += 2;
             }
-
+            
             //mov conv kernel
-            //k0 += 9;
-            //k1 += 9;
+            k0 += 9;
+            k1 += 9;
         }
     }
 
@@ -625,8 +624,8 @@ else
         printf("*************Tail*************\n");
         int c = cc;
         float *dest0 = dest + c * out_size;
-        for(int j = 0; j < out_size; j++) dest0[c * out_size + j] = 0.f;
-        const float* kernel0 = kernel + c * 3 * 3;
+        for(int j = 0; j < out_size; j++) dest0[j] = 0.f;
+        const float* kernel0 = kernel + c * inch * 3 * 3;
 
         for(int q = 0; q < inch; q++){
             float *destptr0 = dest0;
