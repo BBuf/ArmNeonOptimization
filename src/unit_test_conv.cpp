@@ -94,7 +94,7 @@ int main(){
     //5x5x3
     float *src = new float[inw * inh * inch];
     //3x3x4
-    float *kernel = new float[kw * kh * outch];
+    float *kernel = new float[kw * kh * outch * inch];
     //3x3x4
     float *dest = new float[outw * outh * outch];
 
@@ -105,10 +105,6 @@ int main(){
 
     for(int i = 0; i < kw * kh * inch * outch; i++){
         kernel[i] = b[i];
-    }
-
-    for(int i = 0; i < outh * outw * outch; i++){
-        dest[i] = 0.f;
     }
 
     conv3x3s1_neon(src, inw, inh, inch, kernel, kw, kh, dest, outw, outh, outch);
@@ -126,6 +122,9 @@ int main(){
     }
 
     printf("\n");
+    free(src);
+    free(kernel);
+    free(dest);dengwo 
 
     return 0;
 }

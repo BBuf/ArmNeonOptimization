@@ -9,7 +9,7 @@ void conv3x3s1_neon(float *const &src, const int &inw, const int &inh,  const in
                         const int &kh, float* &dest, const int &outw, const int &outh, const int &outch){
     int cc_outch = outch >> 1;
     int cc_remain_outch = cc_outch << 1;
-    printf("%d %d\n", cc_outch, cc_remain_outch);
+
     const int in_size = inw * inh;
     const int out_size = outw * outh;
     //deal two conv output 
@@ -396,7 +396,7 @@ else
                 r1 += 2 + inw;
                 r2 += 2 + inw;
                 r3 += 2 + inw;
-                
+
                 destptr0 += outw;
                 destptr1 += outw;
                 destptr0_next += outw;
