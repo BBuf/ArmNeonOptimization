@@ -53,22 +53,22 @@ int main(){
 
     //赋值
     for(int i = 0; i < inw * inh * inch; i++){
-        src[i] = a[i];
+        src[i] = i;
     }
 
     for(int i = 0; i < kw * kh * outch; i++){
-        kernel[i] = b[i];
+        kernel[i] = 2.0;
     }
 
     conv3x3s1_neon(src, inw, inh, inch, kernel, kw, kh, dest, outw, outh, outch);
 
-    for(int i = 0; i < outw * outh * outch ; i++){
-        bool flag = cmp(dest[i], c[i]);
-        if(flag == false){
-            printf("WA: %d\n", i);
-            printf("Expected: %.5f, ConvOutput: %.5f\n", c[i], dest[i]);
-        }
-    }
+    // for(int i = 0; i < outw * outh * outch ; i++){
+    //     bool flag = cmp(dest[i], c[i]);
+    //     if(flag == false){
+    //         printf("WA: %d\n", i);
+    //         printf("Expected: %.5f, ConvOutput: %.5f\n", c[i], dest[i]);
+    //     }
+    // }
 
     for(int i = 0; i < outw * outh * outch; i++){
         printf("%.5f ", dest[i]);

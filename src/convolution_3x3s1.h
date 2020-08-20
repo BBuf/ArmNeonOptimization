@@ -8,7 +8,8 @@ using namespace std;
 void conv3x3s1_neon(float *const &src, const int &inw, const int &inh,  const int &inch, float *const &kernel, const int &kw, 
                         const int &kh, float* &dest, const int &outw, const int &outh, const int &outch){
     int cc_outch = outch >> 1;
-    int cc_remain_outch = outch << 1;
+    int cc_remain_outch = cc_outch << 1;
+    printf("%d %d\n", cc_outch, cc_remain_outch);
     const int in_size = inw * inh;
     const int out_size = outw * outh;
     //deal two conv output 
@@ -16,19 +17,20 @@ void conv3x3s1_neon(float *const &src, const int &inw, const int &inh,  const in
     #pragma omp parallel for num_threads(OMP_THREAD)
 #endif 
     for(int cc = 0; cc < cc_outch; cc++){
-        int c = cc * 2;
+        int c = cc << 1;
         //get two conv output in same time
         float *dest0 = dest + c * out_size;
         float *dest1 =  dest + (c + 1) * out_size;
 
-        for(int j = 0; j < out_size; j++) dest0[j] = 0.f;
-        for(int j = 0; j < out_size; j++) dest1[j] = 0.f;
+        for(int j = 0; j < out_size; j++) dest0[c * out_size + j] = 0.f;
+        for(int j = 0; j < out_size; j++) dest1[(c + 1) * out_size + j] = 0.f;
 
         //two output rely on two kernel
-        float *k0 = kernel + c * inch * 3 * 3;
-        float *k1 = kernel + (c + 1) * inch * 3 * 3;
+        float *k0 = kernel + c * 3 * 3;
+        float *k1 = kernel + (c + 1) * 3 * 3;
 
         for(int q = 0; q < inch; q++){
+            
             float* destptr0 = dest0;
             float* destptr1 = dest1;
             float* destptr0_next = destptr0 + outw;
@@ -40,6 +42,8 @@ void conv3x3s1_neon(float *const &src, const int &inw, const int &inh,  const in
             const float* r1 = src0 + inw;
             const float* r2 = src0 + inw * 2;
             const float* r3 = src0 + inw * 3;
+
+
 
 #if USE_NEON
             float32x4_t k012 = vld1q_f32(k0);
@@ -606,8 +610,8 @@ else
             }
 
             //mov conv kernel
-            k0 += 9;
-            k1 += 9;
+            //k0 += 9;
+            //k1 += 9;
         }
     }
 
@@ -616,15 +620,17 @@ else
 #pragma omp parallel for num_threads(OMP_THREAD)
 #endif 
 
+
     for(int cc = cc_remain_outch; cc < outch; cc++){
+        printf("*************Tail*************\n");
         int c = cc;
         float *dest0 = dest + c * out_size;
-        for(int j = 0; j < out_size; j++) dest[j] = 0.f;
-        const float* k0 = kernel + c * inch * 3 * 3;
+        for(int j = 0; j < out_size; j++) dest0[c * out_size + j] = 0.f;
+        const float* kernel0 = kernel + c * 3 * 3;
 
         for(int q = 0; q < inch; q++){
-            float *destptr0 = dest;
-            float *destptr1 = dest + outw;
+            float *destptr0 = dest0;
+            float *destptr1 = dest0 + outw;
 
             const float* src0 = src + q * in_size;
             //deal four lines and get two outputs in a feature map
@@ -638,9 +644,9 @@ else
             float32x4_t k345 = vld1q_f32(k0 + 3);
             float32x4_t k678 = vld1q_f32(k0 + 6);
 #else
-            const float* k0 = k0;
-            const float* k1 = k0 + 3;
-            const float* k2 = k0 + 6;
+            const float* k0 = kernel0;
+            const float* k1 = kernel0 + 3;
+            const float* k2 = kernel0 + 6;
 #endif
 
             int i = 0;
@@ -968,7 +974,7 @@ else
                 r1 += 2;
                 r2 += 2;
             }
-            k0 += 9;
+            kernel0 += 9;
         }
     }
 }
