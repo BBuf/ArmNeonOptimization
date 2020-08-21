@@ -1,22 +1,24 @@
 //src conv kernel
 #include <vector>
 #include <iostream>
-#define USE_NEON 0
+#define USE_NEON 1
+#include <arm_neon.h>
 #define USE_OMP 0
+#define OMP_THREAD 2
 using namespace std;
 
-void conv3x3s1_neon(float *const &src, const int &inw, const int &inh,  const int &inch, float *const &kernel, const int &kw, 
-                        const int &kh, float* &dest, const int &outw, const int &outh, const int &outch){
-    int cc_outch = outch >> 1;
-    int cc_remain_outch = cc_outch << 1;
+void conv3x3s1_neon(float *const &src, const int &inWidth, const int &inHeight,  const int &inChannel, float *const &kernel, 
+                                        float* &dest, const int &outWidth, const int &outHeight, const int &outChannel){
+    int ccOutChannel = outChannel >> 1;
+    int ccRemainOutChannel = outChannel << 1;
 
-    const int in_size = inw * inh;
-    const int out_size = outw * outh;
+    const int in_size = inWidth * inHeight;
+    const int out_size = outWidth * outHeight;
     //deal two conv output 
 #if USE_OMP
     #pragma omp parallel for num_threads(OMP_THREAD)
 #endif 
-    for(int cc = 0; cc < cc_outch; cc++){
+    for(int cc = 0; cc < ccOutChannel; cc++){
         int c = cc << 1;
         //get two conv output in same time
         float *dest0 = dest + c * out_size;
@@ -26,28 +28,28 @@ void conv3x3s1_neon(float *const &src, const int &inw, const int &inh,  const in
         for(int j = 0; j < out_size; j++) dest1[j] = 0.f;
 
         //two output rely on two kernel
-        float *k0 = kernel + c * inch * 3 * 3;
-        float *k1 = kernel + (c + 1) * inch * 3 * 3;
+        float *k0 = kernel + c * inChannel * 3 * 3;
+        float *k1 = kernel + (c + 1) * inChannel * 3 * 3;
 
-        for(int q = 0; q < inch; q++){
+        for(int q = 0; q < inChannel; q++){
             float* destptr0 = dest0;
             float* destptr1 = dest1;
-            float* destptr0_next = destptr0 + outw;
-            float* destptr1_next = destptr1 + outw;
+            float* destptr0_next = destptr0 + outWidth;
+            float* destptr1_next = destptr1 + outWidth;
 
             const float* src0 = src + q * in_size;
             //deal four lines and get two outputs in a feature map
             const float* r0 = src0;
-            const float* r1 = src0 + inw;
-            const float* r2 = src0 + inw * 2;
-            const float* r3 = src0 + inw * 3;
+            const float* r1 = src0 + inWidth;
+            const float* r2 = src0 + inWidth * 2;
+            const float* r3 = src0 + inWidth * 3;
 
 
 
 #if USE_NEON
             float32x4_t k012 = vld1q_f32(k0);
             float32x4_t k345 = vld1q_f32(k0 + 3);
-            float32x4_t k678 = v1d1q_f32(k0 + 6);
+            float32x4_t k678 = vld1q_f32(k0 + 6);
 
             float32x4_t k012_next = vld1q_f32(k1);
             float32x4_t k345_next = vld1q_f32(k1 + 3);
@@ -55,13 +57,13 @@ void conv3x3s1_neon(float *const &src, const int &inw, const int &inh,  const in
 #endif
 
             int i = 0;
-            for(; i + 1 < outh; i += 2){
+            for(; i + 1 < outHeight; i += 2){
                 
 #if USE_NEON
-                int nn = outw >> 2;
-                int remain = outw - (nn << 2);
+                int nn = outWidth >> 2;
+                int remain = outWidth - (nn << 2);
 #else
-                int remain = outw;
+                int remain = outWidth;
 #endif
 
 
@@ -69,7 +71,7 @@ void conv3x3s1_neon(float *const &src, const int &inw, const int &inh,  const in
 
 #if __aarch64__
                 throw Exception(1, "Error: armv8 temporarily not supported!", __FILE__, __LINE__, __FUNCTION__);
-else
+#else
                 //assembly
                 if(nn > 0){
                     asm volatile(
@@ -258,7 +260,7 @@ else
                         "w"(k012_next), // %21
                         "w"(k345_next), // %22
                         "w"(k678_next)  // %23
-                        : "cc", "memory", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15");
+                        : "cc", "memory", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
                     );
                 }
 
@@ -392,25 +394,25 @@ else
                     destptr1_next++;
                 }
 
-                r0 += 2 + inw;
-                r1 += 2 + inw;
-                r2 += 2 + inw;
-                r3 += 2 + inw;
+                r0 += 2 + inWidth;
+                r1 += 2 + inWidth;
+                r2 += 2 + inWidth;
+                r3 += 2 + inWidth;
 
-                destptr0 += outw;
-                destptr1 += outw;
-                destptr0_next += outw;
-                destptr1_next += outw;
+                destptr0 += outWidth;
+                destptr1 += outWidth;
+                destptr0_next += outWidth;
+                destptr1_next += outWidth;
             }
             
             //deal three lines and get one output in a feature map
-            for(; i < outh; i++){
+            for(; i < outHeight; i++){
                 
 #if USE_NEON
-                int nn = outw >> 2;
-                int remain = outw - (nn << 2);
+                int nn = outWidth >> 2;
+                int remain = outWidth - (nn << 2);
 #else                
-                int remain = outw;
+                int remain = outWidth;
 
 #endif
 
@@ -524,7 +526,7 @@ else
                         "w"(k012_next), // %15
                         "w"(k345_next), // %16
                         "w"(k678_next)  // %17
-                        : "cc", "memory", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13");
+                        : "cc", "memory", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13"
                   );
                 }
 #endif
@@ -620,28 +622,28 @@ else
 #endif 
 
 
-    for(int cc = cc_remain_outch; cc < outch; cc++){
+    for(int cc = ccRemainOutChannel; cc < outChannel; cc++){
         printf("*************Tail*************\n");
         int c = cc;
         float *dest0 = dest + c * out_size;
         for(int j = 0; j < out_size; j++) dest0[j] = 0.f;
-        const float* kernel0 = kernel + c * inch * 3 * 3;
+        const float* kernel0 = kernel + c * inChannel * 3 * 3;
 
-        for(int q = 0; q < inch; q++){
+        for(int q = 0; q < inChannel; q++){
             float *destptr0 = dest0;
-            float *destptr1 = dest0 + outw;
+            float *destptr1 = dest0 + outWidth;
 
             const float* src0 = src + q * in_size;
             //deal four lines and get two outputs in a feature map
             const float* r0 = src0;
-            const float* r1 = src0 + inw;
-            const float* r2 = src0 + inw * 2;
-            const float* r3 = src0 + inw * 3;
+            const float* r1 = src0 + inWidth;
+            const float* r2 = src0 + inWidth * 2;
+            const float* r3 = src0 + inWidth * 3;
 
 #if USE_NEON
-            float32x4_t k012 = vld1q_f32(k0);
-            float32x4_t k345 = vld1q_f32(k0 + 3);
-            float32x4_t k678 = vld1q_f32(k0 + 6);
+            float32x4_t k012 = vld1q_f32(kernel0);
+            float32x4_t k345 = vld1q_f32(kernel0 + 3);
+            float32x4_t k678 = vld1q_f32(kernel0 + 6);
 #else
             const float* k0 = kernel0;
             const float* k1 = kernel0 + 3;
@@ -649,12 +651,12 @@ else
 #endif
 
             int i = 0;
-            for(; i + 1 < outh; i += 2){
+            for(; i + 1 < outHeight; i += 2){
 #if USE_NEON
-                int nn = outw >> 2;
-                int remain = outw - (nn << 2);
+                int nn = outWidth >> 2;
+                int remain = outWidth - (nn << 2);
 #else
-                int remain = outw;
+                int remain = outWidth;
 #endif
 
 #if USE_NEON
@@ -762,7 +764,7 @@ else
                         "w"(k012), // %14
                         "w"(k345), // %15
                         "w"(k678)  // %16
-                        : "cc", "memory", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15");
+                        : "cc", "memory", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
                     );
                 } 
 #endif
@@ -793,8 +795,8 @@ else
 
                     float32x2_t _ss01 = vpadd_f32(_ss0, _ss1);
 
-                    *destptr0 = vaddvq_f32(_ss01, 0);
-                    *destptr1 = vaddvq_f32(_ss01, 1);
+                    *destptr0 = vget_lane_f32(_ss01, 0);
+                    *destptr1 = vget_lane_f32(_ss01, 1);
 #endif      
                 
 #else
@@ -834,92 +836,93 @@ else
                     destptr1++;
                 }
 
-                r0 += 2 + inw;
-                r1 += 2 + inw;
-                r2 += 2 + inw;
-                r3 += 2 + inw;
+                r0 += 2 + inWidth;
+                r1 += 2 + inWidth;
+                r2 += 2 + inWidth;
+                r3 += 2 + inWidth;
 
-                destptr0 += outw;
-                destptr1 += outw;
+                destptr0 += outWidth;
+                destptr1 += outWidth;
             }
 
-            for(; i < outh; i++){
+            for(; i < outHeight; i++){
 #if USE_NEON
-                int nn = outw >> 2;
-                int remain = outw - (nn << 2);
+                int nn = outWidth >> 2;
+                int remain = outWidth - (nn << 2);
 #else
-                int remain = outw;
+                int remain = outWidth;
 #endif
 
 #if USE_NEON
 
 #if __aarch64__
                 throw Exception(1, "Error: armv8 temporarily not supported!", __FILE__, __LINE__, __FUNCTION__);
-else    
+#else    
                 if(nn > 0){
-                    "0:                             \n"
-                    // r0 = [a, b, c, d, e, f]
-                    "pld        [%2, #192]          \n"
-                    "vld1.f32   {d16-d18}, [%2]     \n" 
-                    "add        %2, #16             \n"
+                    asm volatile(
+                        "0:                             \n"
+                        // r0 = [a, b, c, d, e, f]
+                        "pld        [%2, #192]          \n"
+                        "vld1.f32   {d16-d18}, [%2]     \n" 
+                        "add        %2, #16             \n"
 
-                    "vext.32    q10, q8, q9, #1     \n"
-                    "vext.32    q11, q8, q9, #2     \n"
+                        "vext.32    q10, q8, q9, #1     \n"
+                        "vext.32    q11, q8, q9, #2     \n"
 
-                    //sum0
-                    "pld        [%1, #128]          \n"
-                    "vld1.f32   {d14-d15}, [%1]     \n"
+                        //sum0
+                        "pld        [%1, #128]          \n"
+                        "vld1.f32   {d14-d15}, [%1]     \n"
 
-                    "vmla.f32   q7, q8, %e10[0]     \n"
-                    "vmul.f32   q13, q10, %e10[1]   \n"
-                    "vmul.f32   q14, q11, %f10[0]   \n"
+                        "vmla.f32   q7, q8, %e10[0]     \n"
+                        "vmul.f32   q13, q10, %e10[1]   \n"
+                        "vmul.f32   q14, q11, %f10[0]   \n"
 
-                    // r1 = [a1, b1, c1, d1, e1, f1]
-                    "pld        [%3, #192]          \n"
-                    "vld1.f32   {d16-d18}, [%3]     \n"
-                    "add        %3, #16             \n"
+                        // r1 = [a1, b1, c1, d1, e1, f1]
+                        "pld        [%3, #192]          \n"
+                        "vld1.f32   {d16-d18}, [%3]     \n"
+                        "add        %3, #16             \n"
 
-                    "vext.32    q10, q8, q9, #1     \n"
-                    "vext.32    q11, q8, q9, #2     \n"
-                    
-                    "vmla.f32   q7, q8, %e11[0]     \n"
-                    "vmla.f32   q13, q10, %e11[1]   \n"
-                    "vmla.f32   q14, q11, %f11[0]   \n"
+                        "vext.32    q10, q8, q9, #1     \n"
+                        "vext.32    q11, q8, q9, #2     \n"
+                        
+                        "vmla.f32   q7, q8, %e11[0]     \n"
+                        "vmla.f32   q13, q10, %e11[1]   \n"
+                        "vmla.f32   q14, q11, %f11[0]   \n"
 
-                    // r2 = [a2, b2, c2, d2, e2, f2]
-                    "pld        [%4, #192]          \n"
-                    "vld1.f32   {d16-d18}, [%4]     \n"
-                    "add        %4, #16             \n"
+                        // r2 = [a2, b2, c2, d2, e2, f2]
+                        "pld        [%4, #192]          \n"
+                        "vld1.f32   {d16-d18}, [%4]     \n"
+                        "add        %4, #16             \n"
 
-                    "vext.32    q10, q8, q9, #1     \n"
-                    "vext.32    q11, q8, q9, #2     \n"
+                        "vext.32    q10, q8, q9, #1     \n"
+                        "vext.32    q11, q8, q9, #2     \n"
 
-                    "vmla.f32   q7, q8, %e12[0]     \n"
-                    "vmla.f32   q13, q10, %e12[1]   \n"
-                    "vmla.f32   q14, q11, %f12[0]   \n"
+                        "vmla.f32   q7, q8, %e12[0]     \n"
+                        "vmla.f32   q13, q10, %e12[1]   \n"
+                        "vmla.f32   q14, q11, %f12[0]   \n"
 
-                    "vadd.f32   q7, q7, q13         \n"
-                    "vadd.f32   q7, q7, q14         \n"
+                        "vadd.f32   q7, q7, q13         \n"
+                        "vadd.f32   q7, q7, q14         \n"
 
-                    "vst1.f32   {d14-d15}, [%1]!    \n"
+                        "vst1.f32   {d14-d15}, [%1]!    \n"
 
-                    "subs       %0, #1              \n"
-                    "bne        0b                  \n"
+                        "subs       %0, #1              \n"
+                        "bne        0b                  \n"
 
-                    : "=r"(nn),     // %0
-                    "=r"(destptr0), // %1
-                    "=r"(r0),     // %2
-                    "=r"(r1),     // %3
-                    "=r"(r2)      // %4
-                    : "0"(nn),
-                    "1"(destptr0),
-                    "2"(r0),
-                    "3"(r1),
-                    "4"(r2),
-                    "w"(k012), // %10
-                    "w"(k345), // %11
-                    "w"(k678)  // %12
-                    : "cc", "memory", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15");
+                        : "=r"(nn),     // %0
+                        "=r"(destptr0), // %1
+                        "=r"(r0),     // %2
+                        "=r"(r1),     // %3
+                        "=r"(r2)      // %4
+                        : "0"(nn),
+                        "1"(destptr0),
+                        "2"(r0),
+                        "3"(r1),
+                        "4"(r2),
+                        "w"(k012), // %10
+                        "w"(k345), // %11
+                        "w"(k678)  // %12
+                        : "cc", "memory", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15");
                 } 
 #endif
                 
@@ -942,7 +945,7 @@ else
                     *destptr0 = vaddvq_f32(sum0);
 #else
                     float32x2_t _ss0 = vadd_f32(vget_low_f32(sum0), vget_high_f32(sum0));
-                    _ss0 = vpadd_fp32(_ss0, _ss0);
+                    _ss0 = vpadd_f32(_ss0, _ss0);
 
                     *destptr0 = vget_lane_f32(_ss0, 0);
 #endif

@@ -4,7 +4,9 @@
 // #include <catch.h>
 #include <math.h>
 #include <convolution_3x3s1.h>
+#include <opencv2/opencv.hpp>
 using namespace std;
+using namespace cv;
 
 bool cmp(float x, float y){
     if(fabs(x - y) < 0.01){
@@ -106,8 +108,14 @@ int main(){
     for(int i = 0; i < kw * kh * inch * outch; i++){
         kernel[i] = b[i];
     }
+    
+    int64 st = cvGetTickCount();
 
-    conv3x3s1_neon(src, inw, inh, inch, kernel, kw, kh, dest, outw, outh, outch);
+    for(int i = 0; i < 10; i++){
+        conv3x3s1_neon(src, inw, inh, inch, kernel, dest, outw, outh, outch);
+    }
+    
+    double duration = (cv::getTickCount() - st) / cv::getTickFrequency() * 100;
 
     for(int i = 0; i < outw * outh * outch ; i++){
         bool flag = cmp(dest[i], c[i]);
@@ -117,6 +125,8 @@ int main(){
         }
     }
 
+    printf("Time: %.5f\n", duration);
+
     for(int i = 0; i < outw * outh * outch; i++){
         printf("%.5f ", dest[i]);
     }
@@ -124,7 +134,7 @@ int main(){
     printf("\n");
     free(src);
     free(kernel);
-    free(dest);dengwo 
+    free(dest);
 
     return 0;
 }
