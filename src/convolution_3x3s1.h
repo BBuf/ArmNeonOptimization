@@ -1,7 +1,7 @@
 //src conv kernel
 #include <vector>
 #include <iostream>
-#define USE_NEON 1
+#define USE_NEON 0
 #include <arm_neon.h>
 #define USE_OMP 0
 #define OMP_THREAD 2
@@ -10,8 +10,8 @@ using namespace std;
 void conv3x3s1_neon(float *const &src, const int &inWidth, const int &inHeight,  const int &inChannel, float *const &kernel, 
                                         float* &dest, const int &outWidth, const int &outHeight, const int &outChannel){
     int ccOutChannel = outChannel >> 1;
-    int ccRemainOutChannel = outChannel << 1;
-
+    int ccRemainOutChannel = ccOutChannel << 1;
+    
     const int in_size = inWidth * inHeight;
     const int out_size = outWidth * outHeight;
     //deal two conv output 
@@ -623,7 +623,6 @@ void conv3x3s1_neon(float *const &src, const int &inWidth, const int &inHeight, 
 
 
     for(int cc = ccRemainOutChannel; cc < outChannel; cc++){
-        printf("*************Tail*************\n");
         int c = cc;
         float *dest0 = dest + c * out_size;
         for(int j = 0; j < out_size; j++) dest0[j] = 0.f;
