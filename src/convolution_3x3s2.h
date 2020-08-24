@@ -1,7 +1,7 @@
 //src conv kernel
 #include <vector>
 #include <iostream>
-#define USE_NEON 0
+#define USE_NEON 1
 #include <arm_neon.h>
 #define USE_OMP 0
 #define OMP_THREAD 2
@@ -9,7 +9,7 @@ using namespace std;
 
 void conv3x3s2_neon(float *const &src, const int &inWidth, const int &inHeight,  const int &inChannel, float *const &kernel, 
                                         float* &dest, const int &outWidth, const int &outHeight, const int &outChannel){
-        int ccOutChannel = outChannel >> 1;
+    int ccOutChannel = outChannel >> 1;
         int ccRemainOutChannel = outChannel << 1;
 
         const int in_size = inWidth * inHeight;
@@ -73,7 +73,113 @@ void conv3x3s2_neon(float *const &src, const int &inWidth, const int &inHeight, 
     #else
                     if(nn > 0){
                         asm  volatile(
-                            
+                            "0:                             \n"
+                            // r0
+                            // q8 = [a, c, e, g]
+                            // q9 = [b, d, f, h]
+                            "pld        [%3, #256]          \n"
+                            "vld2.f32   {d16-d19}, [%3]!    \n" 
+
+                            //sum0 = q6
+                            "pld        [%1, #128]          \n"
+                            "vld1.f32   {d12-d13}, [%1]     \n"
+
+                            //sum1 = q7
+                            "pld        [%2, #128]          \n"
+                            "vld1.f32   {d14-d15}, [%2]     \n"
+
+                            // q8和k012的第一个元素相乘
+                            "vmul.f32   q12, q8, %e12[0]    \n"
+                            // q8和k012_next的第一个元素相乘
+                            "vmul.f32   q13, q8, %e15[0]    \n"
+                            // q10 = [a, b, c, d]
+                            "pld        [%3, #128]          \n"
+                            "vld2.f32   {d20-d21}, [%3]     \n" 
+
+                            // q9 = [b, d, f, h] 和 k012的第二个元素相乘
+                            "vmla.f32   q6, q9, %e12[1]     \n"
+                            // q9 = [b, d, f, h] 和 k012_next的第二个元素相乘
+                            "vmla.f32   q7, q9, %e15[1]     \n"
+
+                            // q8 = [a, c, e, g]
+                            // q10 = [i, j, k, l]
+                            // q11 = [c, e, g, i]
+                            "vext.32    q11, q8, q10, #1    \n"
+
+                            // q11 = [c, e, g, i] 和 k012的第三个元素相乘
+                            // q11 = [c, e, g, i] 和 k012_next的第三个元素相乘
+                            "vmla.f32   q12, q11, %f12[0]   \n"
+                            "vmla.f32   q13, q11, %f15[0]   \n"
+
+
+                            // r1
+                            "pld        [%4, #256]          \n"
+                            "vld2.f32   {d16-d19}, [%4]!    \n"
+
+                            "pld        [%4, #128]          \n"
+                            "vld2.f32   {d20-d21}, [%4]     \n"
+
+                            "vmla.f32   q6, q8, %e13[0]     \n"
+                            "vmla.f32   q7, q8, %e16[0]     \n"
+
+                            "vext.32    q11, q8, q10, #1    \n"
+
+                            "vmla.f32   q6, q9, %e13[1]    \n"
+                            "vmla.f32   q7, q9, %e16[1]    \n"
+
+                            "vmla.f32   q12, q11, %f13[0]    \n"
+                            "vmla.f32   q13, q11, %f16[0]    \n"
+
+                            //r2
+                            "pld        [%5, #256]          \n"
+                            "vld2.f32   {d16-d19}, [%5]!    \n"
+
+                            "pld        [%5, #128]          \n"
+                            "vld2.f32   {d20-d21}, [%5]     \n"
+
+                            "vmla.f32   q12, q8, %e14[0]    \n"
+                            "vmla.f32   q13, q8, %e17[0]    \n"
+
+                            "vext.32    q11, q8, q10, #1    \n"
+
+                            "vmla.f32   q6, q9, %e14[1]     \n"
+                            "vmla.f32   q7, q9, %e17[1]     \n"
+
+                            "vmla.f32   q12, q11, %f14[0]   \n"
+                            "vmla.f32   q13, q11, %f17[0]   \n"
+
+                            //sum
+                            "vadd.f32   q6, q6, q12         \n"
+                            "vadd.f32   q7, q7, q13         \n"
+
+                            "vst1.f32   {d12-d13}, [%1]!    \n"
+                            "vst1.f32   {d14-d15}, [%2]!    \n"
+
+                            "subs       %0, #1              \n"
+                            "bne        0b                  \n"
+
+                            // OutputOperands 
+                            : "=r"(nn),      // %0
+                            "=r"(destptr0), // %1
+                            "=r"(destptr1), // %2
+                            "=r"(r0),      // %3
+                            "=r"(r1),      // %4
+                            "=r"(r2)       // %5
+                            //InputOperands
+                            : "0"(nn),
+                            "1"(destptr0),
+                            "2"(destptr1),
+                            "3"(r0),
+                            "4"(r1),
+                            "5"(r2),
+                            "w"(k012), // %12
+                            "w"(k345), // %13
+                            "w"(k678), // %14
+                            "w"(k012_next), // %15
+                            "w"(k345_next), // %16
+                            "w"(k678_next)  // %17
+                            //Clobbers
+                            : "cc", "memory", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
                         );
                     }
     #endif
@@ -215,6 +321,93 @@ void conv3x3s2_neon(float *const &src, const int &inWidth, const int &inHeight, 
     #else    
                     if(nn > 0){
                         asm volatile(
+                            // r0
+                            // q8 = [a, c, e, g]
+                            // q9 = [b, d, f, h]
+                            "pld        [%3, #256]          \n"
+                            "vld2.f32   {d16-d19}, [%3]!    \n" 
+
+                            //sum0 = q6
+                            "pld        [%1, #128]          \n"
+                            "vld1.f32   {d12-d13}, [%1]     \n"
+
+
+                            // q8和k012的第一个元素相乘
+                            "vmul.f32   q12, q8, %e10[0]    \n"
+                            // q10 = [a, b, c, d]
+                            "pld        [%3, #128]          \n"
+                            "vld2.f32   {d20-d21}, [%3]     \n" 
+
+                            // q9 = [b, d, f, h] 和 k012的第二个元素相乘
+                            "vmla.f32   q6, q9, %e10[1]     \n"
+
+                            // q8 = [a, c, e, g]
+                            // q10 = [i, j, k, l]
+                            // q11 = [c, e, g, i]
+                            "vext.32    q11, q8, q10, #1    \n"
+
+                            // q11 = [c, e, g, i] 和 k012的第三个元素相乘
+                            "vmla.f32   q12, q11, %f10[0]   \n"
+
+
+                            // r1
+                            "pld        [%4, #256]          \n"
+                            "vld2.f32   {d16-d19}, [%4]!    \n"
+
+                            "pld        [%4, #128]          \n"
+                            "vld2.f32   {d20-d21}, [%4]     \n"
+
+                            "vmla.f32   q6, q8, %e11[0]     \n"
+
+                            "vext.32    q11, q8, q10, #1    \n"
+
+                            "vmla.f32   q6, q9, %e11[1]    \n"
+
+                            "vmla.f32   q12, q11, %f11[0]    \n"
+
+                            //r2
+                            "pld        [%5, #256]          \n"
+                            "vld2.f32   {d16-d19}, [%5]!    \n"
+
+                            "pld        [%5, #128]          \n"
+                            "vld2.f32   {d20-d21}, [%5]     \n"
+
+                            "vmla.f32   q12, q8, %e12[0]    \n"
+
+                            "vext.32    q11, q8, q10, #1    \n"
+
+                            "vmla.f32   q6, q9, %e12[1]     \n"
+
+                            "vmla.f32   q12, q11, %f12[0]   \n"
+
+                            //sum
+                            "vadd.f32   q6, q6, q12         \n"
+
+                            "vst1.f32   {d12-d13}, [%1]!    \n"
+
+                            "subs       %0, #1              \n"
+                            "bne        0b                  \n"
+
+
+
+                            // OutputOperands 
+                            : "=r"(nn),     // %0
+                            "=r"(destptr0), // %1
+                            "=r"(r0),     // %2
+                            "=r"(r1),     // %3
+                            "=r"(r2)      // %4
+                            // InputOperands
+                            : "0"(nn),
+                            "1"(destptr0),
+                            "2"(r0),
+                            "3"(r1),
+                            "4"(r2),
+                            "w"(k012), // %10
+                            "w"(k345), // %11
+                            "w"(k678)  // %12
+                            // Clobbers
+                            : "cc", "memory", "q0", "q1", "q2", "q3", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+                        );
                            
                     } 
     #endif
@@ -272,4 +465,4 @@ void conv3x3s2_neon(float *const &src, const int &inWidth, const int &inHeight, 
                 kernel0 += 9;
             }
         }
-    }
+}
