@@ -7,7 +7,7 @@
 using namespace std;
 
 void BatchNorm(float * &src, const int &inWidth, const int &inHeight,  const int &inChannel,
-                    float *const &Scales, float *const &rollMean, float *const &rollVariance, float *const &Biases){
+                    float *const &Scales, float *const &rollMean, float *const &rollVariance, float *const &biases){
         // a = bias - slope * mean / sqrt(var)
         // b = slope / sqrt(var)
         // value = b * value + a
