@@ -18,13 +18,12 @@ void BatchNorm(float * &src, const int &inWidth, const int &inHeight,  const int
         int in_size = inWidth * inHeight;
         float *srcPtr = src;
         int nn, remain;
+        cout << inChannel << " " << in_size << endl;
         for(int i = 0; i < inChannel; i++){
 
-            float sqrtVar = sqrt(rollVariance[i]);
-            float a = Biases[i] - Scales[i] * rollMean[i] / sqrtVar;
+            float sqrtVar = sqrt(rollVariance[i] + 0.00001f);
+            float a = biases[i] - Scales[i] * rollMean[i] / sqrtVar;
             float b = Scales[i] / sqrtVar;
-            
-            
 
             #if USE_NEON
                 nn = in_size >> 2;
@@ -53,7 +52,6 @@ void BatchNorm(float * &src, const int &inWidth, const int &inHeight,  const int
                 *srcPtr = b * (*srcPtr) + a;
                 srcPtr++;
             }
-            srcPtr += in_size;
         }
 
     }
