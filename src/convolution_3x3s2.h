@@ -3,14 +3,14 @@
 #include <iostream>
 #define USE_NEON 1
 #include <arm_neon.h>
-#define USE_OMP 0
+#define USE_OMP 1
 #define OMP_THREAD 2
 using namespace std;
 
 void conv3x3s2_neon(float *const &src, const int &inWidth, const int &inHeight,  const int &inChannel, float *const &kernel, 
                                         float* &dest, const int &outWidth, const int &outHeight, const int &outChannel){
     int ccOutChannel = outChannel >> 1;
-        int ccRemainOutChannel = outChannel << 1;
+        int ccRemainOutChannel = ccOutChannel << 1;
 
         const int in_size = inWidth * inHeight;
         const int out_size = outWidth * outHeight;

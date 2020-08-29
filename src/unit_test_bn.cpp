@@ -45,9 +45,9 @@ int main(){
     const int inch = 3;
     
     float Scales[3] = {1., 1., 1};
-    float biases[3] = {0.0, 0.0, 0.0};
+    float biases[3] = {0.5, 0.5, 0.5};
     float rollMean[3] = {0., 0., 0.};
-    float rollVariance[3] = {1., 1., 1.};
+    float rollVariance[3] = {0.25, 0.25, 0.25};
 
     float *src = new float[inw * inh * inch];
     float *dest = new float[inw * inh * inch];
@@ -68,7 +68,7 @@ int main(){
         bool flag = cmp(dest[i], c[i]);
         if(flag == false){
             printf("WA: %d\n", i);
-            printf("Expected: %.4f, ConvOutput: %.4f\n", c[i], src[i]);
+            printf("Expected: %.4f, ConvOutput: %.4f\n", c[i], dest[i]);
         }
     }
 
