@@ -321,6 +321,7 @@ void conv3x3s2_neon(float *const &src, const int &inWidth, const int &inHeight, 
     #else    
                     if(nn > 0){
                         asm volatile(
+                            "0:                             \n"
                             // r0
                             // q8 = [a, c, e, g]
                             // q9 = [b, d, f, h]
