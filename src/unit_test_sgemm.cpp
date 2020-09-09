@@ -147,12 +147,12 @@ float c[200]={-0.0511, -0.3954,  0.2891,
           -0.6761,  1.3065,  0.2785};
 
 int main(){
-    const int inw = 5;
-    const int inh = 5;
-    const int inch = 3;
+    const int inw = 14;
+    const int inh = 14;
+    const int inch = 512;
     const int kw = 3;
     const int kh = 3;
-    const int outch = 5;
+    const int outch = 1024;
     int stride = 1;
     const int outw = (inw - kw) / stride + 1;
     const int outh = (inh - kh) / stride + 1;
@@ -167,11 +167,11 @@ int main(){
 
     //赋值
     for(int i = 0; i < inw * inh * inch; i++){
-        src[i] = a[i];
+        src[i] = 1.0;
     }
 
     for(int i = 0; i < kw * kh * inch * outch; i++){
-        kernel[i] = b[i];
+        kernel[i] = 1.0;
     }
 
     float *kernel_tm = new float[(outch/4 + outch%4) * 4 * kw * kh * inch];
@@ -179,29 +179,32 @@ int main(){
     
     convolutionTransformKernel(kernel, kw, kh, kernel_tm, inch, outch);
 
+
+    int64 st = cvGetTickCount();
+
+    for(int i = 0; i < 10; i++)
+        convolutionIm2colSgemm(src, inw, inh, inch, kernel, kernel_tm, kw, kh, dest, outw, outh, outch, stride, stride);
+    
+    double duration = (cv::getTickCount() - st) / cv::getTickFrequency() * 100;
+
+    memset(dest, 0, sizeof(dest));
     convolutionIm2colSgemm(src, inw, inh, inch, kernel, kernel_tm, kw, kh, dest, outw, outh, outch, stride, stride);
 
-    //int64 st = cvGetTickCount();
+    // for(int i = 0; i < outw * outh * outch ; i++){
+    //     bool flag = cmp(dest[i], c[i]);
+    //     if(flag == false){
+    //         printf("WA: %d\n", i);
+    //         printf("Expected: %.4f, ConvOutput: %.4f\n", c[i], dest[i]);
+    //     }
+    // }
 
-    
-    
-    //double duration = (cv::getTickCount() - st) / cv::getTickFrequency() * 100;
-
-    for(int i = 0; i < outw * outh * outch ; i++){
-        bool flag = cmp(dest[i], c[i]);
-        if(flag == false){
-            printf("WA: %d\n", i);
-            printf("Expected: %.4f, ConvOutput: %.4f\n", c[i], dest[i]);
-        }
-    }
-
-    //printf("Time: %.5f\n", duration);
+    printf("Time: %.5f\n", duration);
 
     // for(int i = 0; i < outw * outh * outch; i++){
     //     printf("%.5f ", dest[i]);
     // }
 
-    printf("\n");
+    // printf("\n");
     free(src);
     free(kernel);
     free(dest);
