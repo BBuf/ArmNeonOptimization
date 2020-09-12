@@ -67,7 +67,7 @@ int main(){
     for(int i = 0; i < outch; i++){
         for(int j = 0; j < outh; j++){
             for(int k = 0; k < outw; k++){
-                printf("%.5f ", dest[i]);
+                printf("%.5f ", dest[i*outh*outw + j*outw + k]);
             }
             printf("\n");
         }
