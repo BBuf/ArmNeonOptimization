@@ -2152,13 +2152,13 @@ int main(){
     int64 st = cvGetTickCount();
 
     //for(int i = 0; i < 10; i++){
-    BatchNorm(src, inw, inh, inch, dest, Scales, rollMean, rollVariance, biases);
+    BatchNormInplace(src, inw, inh, inch, Scales, rollMean, rollVariance, biases, 1e-5);
     //}
     
     double duration = (cv::getTickCount() - st) / cv::getTickFrequency() * 100;
 
     for(int i = 0; i < inh * inw * inch ; i++){
-        bool flag = cmp(dest[i], c[i]);
+        bool flag = cmp(src[i], c[i]);
         if(flag == false){
             printf("WA: %d\n", i);
             printf("Expected: %.4f, ConvOutput: %.4f\n", c[i], dest[i]);

@@ -38,8 +38,8 @@ int main(){
     const int inw = 5;
     const int inh = 5;
     const int inch = 3;
-    const int outw = 8;
-    const int outh = 8;
+    const int outw = 7;
+    const int outh = 7;
     const int outch = inch;
 
 
@@ -57,7 +57,7 @@ int main(){
     int64 st = cvGetTickCount();
 
     
-    padding(src, inw, inh, inch, dest, 1, 2, 1, 2, 10);
+    padding(src, inw, inh, inch, dest, 1, 1, 1, 1, 0);
 
     double duration = (cv::getTickCount() - st) / cv::getTickFrequency() * 1000;
 
