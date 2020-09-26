@@ -6,6 +6,7 @@
 #include <convolution_3x3s1.h>
 #include <convolution_3x3s2.h>
 #include <opencv2/opencv.hpp>
+#include <convolution_3x3s1_winograd.h>
 using namespace std;
 using namespace cv;
 
@@ -168,37 +169,12 @@ float c[200]={
 
 
 int main(){
-    const int inw = 112;
-    const int inh = 112;
-    const int inch = 64;
-    const int kw = 3;
-    const int kh = 3;
-    int stride = 1;
-    const int outw = (inw - kw) / stride + 1;
-    const int outh = (inh - kh) / stride + 1;
-    const int outch = 128;
+    
 
-    //5x5x3
-    float *src = new float[inw * inh * inch];
-    //3x3x4
-    float *kernel = new float[kw * kh * outch * inch];
-    //3x3x4
-    float *dest = new float[outw * outh * outch];
-
-    //赋值
-    for(int i = 0; i < inw * inh * inch; i++){
-        src[i] = 1.0;
-    }
-
-    for(int i = 0; i < kw * kh * inch * outch; i++){
-        kernel[i] = 1.0;
-    }
     
     int64 st = cvGetTickCount();
 
-    for(int i = 0; i < 10; i++){
-        conv3x3s1_neon(src, inw, inh, inch, kernel, dest, outw, outh, outch);
-    }
+   
     
     double duration = (cv::getTickCount() - st) / cv::getTickFrequency() * 100;
 
