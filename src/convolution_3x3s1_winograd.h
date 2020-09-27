@@ -1,14 +1,16 @@
 #include <vector>
 #include <iostream>
 #define USE_NEON 0
+#include <padding.h>
 #include <arm_neon.h>
 #define USE_OMP 0
 #define OMP_THREAD 2
 using namespace std;
 
+
 // kerneltm: [outChannel, inChannel, 8*8]
     //F(m, r) = GgG^T
-void conv3x3s1WinogradTransformKenel(float *const &kernel, float* &kernel_tm, const int &inChannel, const int &outChannel){
+void conv3x3s1WinogradTransformKenel(float *const &kernel, float* &kernel_tm, float* &kernel_tm2,const int &inChannel, const int &outChannel){
         // 矩阵G
         const float ktm[8][3] = {
             {1.0f,      0.0f,      0.0f},
@@ -62,7 +64,7 @@ void conv3x3s1WinogradTransformKenel(float *const &kernel, float* &kernel_tm, co
         int packOutH = 1;
         int packOutW = (8 * 8 * inChannel * 4);
 
-        float *kernel_tm2 = new float[packOutChannel * packOutH * packOutW];
+        //float *kernel_tm2 = new float[packOutChannel * packOutH * packOutW];
 
 #if USE_OMP
     #pragma omp parallel for num_threads(OMP_THREAD)
@@ -160,7 +162,8 @@ void conv3x3s1WinogradTransformKenel(float *const &kernel, float* &kernel_tm, co
             }
         }        
 
-        kernel_tm = kernel_tm2;
+        //kernel_tm = kernel_tm2;
+        //memcpy(kernel_tm, kernel_tm2, sizeof(float)*packOutChannel * packOutH * packOutW);
 
     }
 
@@ -184,8 +187,10 @@ void conv3x3s1WinogradNeon(float *const &src, const int &inWidth, const int &inH
         int PadWidth = Right - Left;
         int PadSize = PadHeight * PadWidth;
         float *srcPadding = new float[PadHeight * PadWidth * inChannel];
-        PaddingLayerArm now;
-        now.padding(src, inWidth, inHeight, inChannel, srcPadding, 0, H - inHeight, 0, W - inWidth, 0);
+        //PaddingLayerArm now;
+        //now.padding(src, inWidth, inHeight, inChannel, srcPadding, 0, H - inHeight, 0, W - inWidth, 0);
+
+        padding(src, inWidth, inHeight, inChannel, srcPadding, 0, H - inHeight, 0, W - inWidth, 0);
         
         int w_tm = outW / 6 * 8;
         int h_tm = outH / 6 * 8;
@@ -294,7 +299,7 @@ void conv3x3s1WinogradNeon(float *const &src, const int &inWidth, const int &inH
                         r00[1] = t1 + t2;
                         r00[2] = t1 - t2;
 
-                        float t3 = (tmpVPtr[6] + tmpVPtr[2] * 0.25f - tmpVPtr[4] * 1.25;
+                        float t3 = (tmpVPtr[6] + tmpVPtr[2] * 0.25f - tmpVPtr[4] * 1.25);
                         float t4 = (tmpVPtr[1] * 0.5f - tmpVPtr[3] * 2.5f + tmpVPtr[5] * 2.f);
                         r00[3] = t3 + t4;
                         r04[0] = t3 - t4;
