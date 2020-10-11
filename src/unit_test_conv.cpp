@@ -210,9 +210,9 @@ int main(){
     const int outw = 8;
     const int outh = 8;
 
-    float *kernel = new float[3 * 3 * outch];
+    float *kernel = new float[3 * 3 * outch * inch];
     
-    for(int i = 0; i < 3 * 3 * outch; i++){
+    for(int i = 0; i < 3 * 3 * outch * inch; i++){
       kernel[i] = b[i];
     }
 
@@ -228,6 +228,8 @@ int main(){
 
     conv3x3s1WinogradTransformKenel(kernel, kernel_tm, kernel_tm2, inch, outch);
     
+    printf("HERE!\n");
+
     float *src = new float[inch * inh * inw];
     for(int i = 0; i < inh * inw * inch; i++){
       src[i] = a[i];
