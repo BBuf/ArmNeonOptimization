@@ -237,20 +237,22 @@ int main(){
 
     float *dest = new float[outch * outw * outh];
 
-    conv3x3s1WinogradNeon(src, inw, inh, inch, kernel_tm2, packOutH, packOutW, dest, outw, outh, outch);
-
     int64 st = cvGetTickCount();
 
+    for(int i = 0; i < 10; i++){
+      for(int j = 0; j < outw * outh * outch; j++) dest[j] = 0.f;
+      conv3x3s1WinogradNeon(src, inw, inh, inch, kernel_tm2, packOutH, packOutW, dest, outw, outh, outch);
+    }
     
     double duration = (cv::getTickCount() - st) / cv::getTickFrequency() * 100;
 
-    for(int i = 0; i < outw * outh * outch ; i++){
-        bool flag = cmp(dest[i], c[i]);
-        if(flag == false){
-            printf("WA: %d\n", i);
-            printf("Expected: %.4f, ConvOutput: %.4f\n", c[i], dest[i]);
-        }
-    }
+    // for(int i = 0; i < outw * outh * outch ; i++){
+    //     bool flag = cmp(dest[i], c[i]);
+    //     if(flag == false){
+    //         printf("WA: %d\n", i);
+    //         printf("Expected: %.4f, ConvOutput: %.4f\n", c[i], dest[i]);
+    //     }
+    // }
 
     printf("Time: %.5f\n", duration);
 

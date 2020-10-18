@@ -1,4 +1,28 @@
-input:  tensor(2.8499e+00, 3.6390e+00, 2.6139e+00, 4.8630e+00, 8.1392e+00,
+#include <iostream>
+#include <stdio.h>
+// #define CATCH_CONFIG_MAIN
+// #include <catch.h>
+#include <math.h>
+#include <convolution_3x3s1dw.h>
+#include <convolution_3x3s2dw.h>
+#include <opencv2/opencv.hpp>
+using namespace std;
+using namespace cv;
+
+bool cmp(float x, float y){
+    if(fabs(x - y) < 0.01){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
+
+// -0.2498,  0.1771, -0.1917,
+//          -0.2492,  0.1465,  0.1281,
+ //          -0.2118, -0.2419,  0.0006
+
+float a[500]={2.8499e+00, 3.6390e+00, 2.6139e+00, 4.8630e+00, 8.1392e+00,
            8.5605e+00, 3.4631e+00, 1.4378e+00, 8.8663e+00, 7.7009e+00,       
           6.1214e+00, 3.3853e+00, 2.6189e+00, 4.1047e+00, 8.5599e+00,        
            5.0925e+00, 9.6310e+00, 2.8463e+00, 4.3556e+00, 1.1073e+00,       
@@ -80,8 +104,29 @@ input:  tensor(2.8499e+00, 3.6390e+00, 2.6139e+00, 4.8630e+00, 8.1392e+00,
           9.6407e+00, 4.5941e+00, 6.9312e+00, 2.1987e+00, 3.6255e+00,
            1.0292e+00, 4.5049e+00, 3.5179e+00, 6.9108e+00, 3.0757e+00,
           2.7913e+00, 6.9554e+00, 1.1883e+00, 1.8356e+00, 6.9784e+00,
-           7.0870e+00, 2.6204e+00, 3.1350e+00, 7.4898e+00, 2.9948e+00)
-output:  tensor( 1.2085,  3.1981,  5.1025,  5.0754,
+           7.0870e+00, 2.6204e+00, 3.1350e+00, 7.4898e+00, 2.9948e+00};
+
+float b[200]={0.1472,  0.3213,  0.2204,
+           0.2979,  0.1612, -0.1585,
+          -0.0651,  0.1828, -0.3247,
+
+
+        -0.0449,  0.2847,  0.2774,
+           0.1953, -0.1766, -0.2018,
+          -0.3108,  0.1091,  0.1150,
+
+
+        -0.2269, -0.1191, -0.3120,
+           0.1366, -0.1999, -0.2775,
+          -0.3105, -0.3258,  0.2776,
+
+
+         0.0260,  0.2830,  0.1810,
+          -0.3244,  0.2250, -0.0682,
+          -0.0398, -0.1173,  0.2852};
+
+float c[400]={
+           1.2085,  3.1981,  5.1025,  5.0754,
            1.7322,  3.3310,  1.9532,  5.9851,
            2.6423,  2.5781,  5.3985,  4.5962,
            5.1760,  8.4596,  4.1937,  6.8080,
@@ -99,25 +144,66 @@ output:  tensor( 1.2085,  3.1981,  5.1025,  5.0754,
           1.7828,  0.9255, -0.9728,  2.7836,
            0.6343,  5.5918,  0.6711,  1.4410,
            1.9987,  1.6110, -0.7081, -1.6489,
-           1.6337,  0.8185,  2.0825,  0.7815,
-       grad_fn=<MkldnnConvolutionBackward>)
-weights: Parameter containing:
-tensor( 0.1472,  0.3213,  0.2204,
-           0.2979,  0.1612, -0.1585,
-          -0.0651,  0.1828, -0.3247,
+           1.6337,  0.8185,  2.0825,  0.7815
+};
 
 
-        -0.0449,  0.2847,  0.2774,
-           0.1953, -0.1766, -0.2018,
-          -0.3108,  0.1091,  0.1150,
+int main(){
+    const int inw = 10;
+    const int inh = 10;
+    const int inch = 4;
+    const int kw = 3;
+    const int kh = 3;
+    int stride = 2;
+    const int outw = (inw - kw) / stride + 1;
+    const int outh = (inh - kh) / stride + 1;
+    const int outch = 4;
 
+    //5x5x3
+    float *src = new float[inw * inh * inch];
+    //3x3x4
+    float *kernel = new float[kw * kh * inch];
+    //3x3x4
+    float *dest = new float[outw * outh * outch];
 
-        -0.2269, -0.1191, -0.3120,
-           0.1366, -0.1999, -0.2775,
-          -0.3105, -0.3258,  0.2776,
+    //赋值
+    for(int i = 0; i < inw * inh * inch; i++){
+        src[i] = a[i];
+    }
 
+    for(int i = 0; i < kw * kh * inch; i++){
+        kernel[i] = b[i];
+    }
+    
+    int64 st = cvGetTickCount();
 
-         0.0260,  0.2830,  0.1810,
-          -0.3244,  0.2250, -0.0682,
-          -0.0398, -0.1173,  0.2852, requires_grad=True)
-bias:  None
+    // for(int i = 0; i < 10; i++){
+    //     //memset(dest, 0, sizeof(dest));
+    //     for(int j = 0; j < outw * outh * outch; j++) dest[j] = 0.f;
+    //     convdepthwise3x3s1Neon(src, inw, inh, inch, kernel, dest, outw, outh, outch);
+    // }
+    convdepthwise3x3s2Neon(src, inw, inh, inch, kernel, dest, outw, outh, outch);
+    
+    double duration = (cv::getTickCount() - st) / cv::getTickFrequency() * 100;
+
+    for(int i = 0; i < outw * outh * outch ; i++){
+        bool flag = cmp(dest[i], c[i]);
+        if(flag == false){
+            printf("WA: %d\n", i);
+            printf("Expected: %.4f, ConvOutput: %.4f\n", c[i], dest[i]);
+        }
+    }
+
+    printf("Time: %.5f\n", duration);
+
+    for(int i = 0; i < outw * outh * outch; i++){
+        printf("%.4f ", dest[i]);
+    }
+
+    printf("\n");
+    free(src);
+    free(kernel);
+    free(dest);
+
+    return 0;
+}

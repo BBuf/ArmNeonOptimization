@@ -32,9 +32,9 @@ void convdepthwise3x3s2Neon(float *const &src, const int &inWidth, const int &in
             const float* r3 = src0 + inWidth * 3;
 
 #if USE_NEON
-            float32x4_t k012 = vld1q_f32(k0);
-            float32x4_t k345 = vld1q_f32(k0 + 3);
-            float32x4_t k678 = vld1q_f32(k0 + 6);
+            float32x4_t k012 = vld1q_f32(kernel0);
+            float32x4_t k345 = vld1q_f32(kernel0 + 3);
+            float32x4_t k678 = vld1q_f32(kernel0 + 6);
             k012 = vsetq_lane_f32(0.f, k012, 3);
             k345 = vsetq_lane_f32(0.f, k345, 3);
             k678 = vsetq_lane_f32(0.f, k678, 3);

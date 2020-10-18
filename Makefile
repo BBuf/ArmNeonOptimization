@@ -8,7 +8,7 @@ TARGET_EXE = unit_test
 
 CXX_SOURCE += $(TOP_DIR)/src/boxFilter.cpp
 CXX_SOURCE += $(TOP_DIR)/src/boxFilterBetter.cpp
-CXX_SOURCE += $(TOP_DIR)/src/unit_test_conv.cpp
+CXX_SOURCE += $(TOP_DIR)/src/unit_test_convdw.cpp
 
 
 ####################head file###################

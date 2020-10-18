@@ -33,9 +33,9 @@ void convdepthwise3x3s1Neon(float *const &src, const int &inWidth, const int &in
             const float* r3 = src0 + inWidth * 3;
 
 #if USE_NEON
-            float32x4_t k012 = vld1q_f32(k0);
-            float32x4_t k345 = vld1q_f32(k0 + 3);
-            float32x4_t k678 = vld1q_f32(k0 + 6);
+            float32x4_t k012 = vld1q_f32(kernel0);
+            float32x4_t k345 = vld1q_f32(kernel0 + 3);
+            float32x4_t k678 = vld1q_f32(kernel0 + 6);
             k012 = vsetq_lane_f32(0.f, k012, 3);
             k345 = vsetq_lane_f32(0.f, k345, 3);
             k678 = vsetq_lane_f32(0.f, k678, 3);
@@ -206,7 +206,7 @@ void convdepthwise3x3s1Neon(float *const &src, const int &inWidth, const int &in
                         "w"(k345), // %15
                         "w"(k678) // %16
                         : "cc", "memory", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
-                    )
+                    );
                 }
 #endif
 #endif
@@ -354,12 +354,12 @@ void convdepthwise3x3s1Neon(float *const &src, const int &inWidth, const int &in
 
                         "sub        %2, #16             \n"
                         : "=r"(nn),     // %0
-                        "=r"(outptr), // %1
+                        "=r"(destptr0), // %1
                         "=r"(r0),     // %2
                         "=r"(r1),     // %3
                         "=r"(r2)      // %4
                         : "0"(nn),
-                        "1"(outptr),
+                        "1"(destptr0),
                         "2"(r0),
                         "3"(r1),
                         "4"(r2),
