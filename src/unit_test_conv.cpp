@@ -103,15 +103,15 @@ float c[200]={
 
 
 int main(){
-    const int inw = 5;
-    const int inh = 5;
-    const int inch = 3;
+    const int inw = 15;
+    const int inh = 15;
+    const int inch = 512;
     const int kw = 3;
     const int kh = 3;
-    int stride = 2;
+    int stride = 1;
     const int outw = (inw - kw) / stride + 1;
     const int outh = (inh - kh) / stride + 1;
-    const int outch = 4;
+    const int outch = 1024;
 
     //5x5x3
     float *src = new float[inw * inh * inch];
@@ -122,11 +122,11 @@ int main(){
 
     //赋值
     for(int i = 0; i < inw * inh * inch; i++){
-        src[i] = a[i];
+        src[i] = 0.1;
     }
 
     for(int i = 0; i < kw * kh * inch * outch; i++){
-        kernel[i] = b[i];
+        kernel[i] = 0.2;
     }
     
     int64 st = cvGetTickCount();
@@ -134,26 +134,26 @@ int main(){
     for(int i = 0; i < 10; i++){
         //memset(dest, 0, sizeof(dest));
         for(int j = 0; j < outw * outh * outch; j++) dest[j] = 0.f;
-        conv3x3s2_neon(src, inw, inh, inch, kernel, dest, outw, outh, outch);
+        conv3x3s1_neon(src, inw, inh, inch, kernel, dest, outw, outh, outch);
     }
     
     double duration = (cv::getTickCount() - st) / cv::getTickFrequency() * 100;
 
-    for(int i = 0; i < outw * outh * outch ; i++){
-        bool flag = cmp(dest[i], c[i]);
-        if(flag == false){
-            printf("WA: %d\n", i);
-            printf("Expected: %.4f, ConvOutput: %.4f\n", c[i], dest[i]);
-        }
-    }
+    // for(int i = 0; i < outw * outh * outch ; i++){
+    //     bool flag = cmp(dest[i], c[i]);
+    //     if(flag == false){
+    //         printf("WA: %d\n", i);
+    //         printf("Expected: %.4f, ConvOutput: %.4f\n", c[i], dest[i]);
+    //     }
+    // }
 
     printf("Time: %.5f\n", duration);
 
-    for(int i = 0; i < outw * outh * outch; i++){
-        printf("%.4f ", dest[i]);
-    }
+    // for(int i = 0; i < outw * outh * outch; i++){
+    //     printf("%.4f ", dest[i]);
+    // }
 
-    printf("\n");
+    // printf("\n");
     free(src);
     free(kernel);
     free(dest);

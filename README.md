@@ -42,6 +42,14 @@ make clean; make -j4
 |4032x3024|3|NCNN Neon Assembly|10|68.54ms|1xA53|
 |4032x3024|3|NCNN Neon AssemblyV2|10|61.63ms|1xA53|
 
+## 2. WinoGrad3x3s1 F(6, 3) Algorithm
+|inputHeight|inputWidth|inputChannel|KernelSize|outChannel|Optimization Algorithm|Loop Count|Time|核心数|
+|--|--|--|--|--|--|--|--|--|
+|15|15|512|3x3|1024|手工优化|10|582.67ms|1|
+|15|15|512|3x3|1024|WinoGrad Version1.0|10|170.81ms|1|
+
+
+
 
 
 

@@ -203,17 +203,17 @@ float c[500]={-2.4761, -1.9590, -1.3506, -1.6769,  0.0984, -1.7435, -3.3222,
 
 int main(){
     
-    const int inh = 10;
-    const int inw = 10;
-    const int inch = 3;
-    const int outch = 4;
-    const int outw = 8;
-    const int outh = 8;
+    const int inh = 15;
+    const int inw = 15;
+    const int inch = 512;
+    const int outch = 1024;
+    const int outw = 13;
+    const int outh = 13;
 
     float *kernel = new float[3 * 3 * outch * inch];
     
     for(int i = 0; i < 3 * 3 * outch * inch; i++){
-      kernel[i] = b[i];
+      kernel[i] = 0.1;
     }
 
     int nnOutchannel = outch >> 2;
@@ -232,7 +232,7 @@ int main(){
 
     float *src = new float[inch * inh * inw];
     for(int i = 0; i < inh * inw * inch; i++){
-      src[i] = a[i];
+      src[i] = 0.2;
     }
 
     float *dest = new float[outch * outw * outh];
