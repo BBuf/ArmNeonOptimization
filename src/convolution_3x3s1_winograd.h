@@ -3,7 +3,7 @@
 #include <padding.h>
 #include <arm_neon.h>
 #define USE_NEON 1
-#define USE_OMP 1
+#define USE_OMP 0
 #define OMP_THREAD 2
 using namespace std;
 

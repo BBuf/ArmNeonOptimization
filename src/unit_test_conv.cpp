@@ -103,15 +103,15 @@ float c[200]={
 
 
 int main(){
-    const int inw = 56;
-    const int inh = 56;
-    const int inch = 64;
+    const int inw = 6;
+    const int inh = 6;
+    const int inch = 512;
     const int kw = 3;
     const int kh = 3;
     int stride = 1;
     const int outw = (inw - kw) / stride + 1;
     const int outh = (inh - kh) / stride + 1;
-    const int outch = 128;
+    const int outch = 1024;
 
     //5x5x3
     float *src = new float[inw * inh * inch];

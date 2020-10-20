@@ -203,12 +203,12 @@ float c[500]={-2.4761, -1.9590, -1.3506, -1.6769,  0.0984, -1.7435, -3.3222,
 
 int main(){
     
-    const int inh = 56;
-    const int inw = 56;
-    const int inch = 64;
-    const int outch = 128;
-    const int outw = 54;
-    const int outh = 54;
+    const int inh = 6;
+    const int inw = 6;
+    const int inch = 512;
+    const int outch = 1024;
+    const int outw = 4;
+    const int outh = 4;
 
     float *kernel = new float[3 * 3 * outch * inch];
     
