@@ -6,16 +6,15 @@ TOP_DIR = .
 
 TARGET_EXE = unit_test
 
-CXX_SOURCE += $(TOP_DIR)/src/boxFilter.cpp
-CXX_SOURCE += $(TOP_DIR)/src/boxFilterBetter.cpp
-CXX_SOURCE += $(TOP_DIR)/src/unit_test_conv.cpp
-
+#CXX_SOURCE += $(TOP_DIR)/src/unit_test_conv.cpp
+CXX_SOURCE += $(TOP_DIR)/optimize_gemm/test_matrix_multiply.cpp
 
 ####################head file###################
 DEP_INC_DIR += -I$(TOP_DIR)/include
 DEP_INC_DIR += -I$(TOP_DIR)/include/opencv2.4.9 
 DEP_INC_DIR += -I$(TOP_DIR)/include/opencv2.4.9/opencv 
 DEP_INC_DIR += -I$(TOP_DIR)/include/opencv2.4.9/opencv2 
+DEP_INC_DIR += -I$(TOP_DIR)/optimize_gemm
 DEP_INC_DIR += -I$(TOP_DIR)/src
 
 
