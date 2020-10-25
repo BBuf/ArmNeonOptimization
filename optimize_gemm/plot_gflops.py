@@ -26,7 +26,8 @@ def readFile(filename):
 if __name__ == '__main__':
     plt.xlabel('size')
     plt.ylabel('gflops')
-    t, x, y = readFile('origin.m')
+    t, x, y = readFile('now.txt')
     plt.plot(x, y, label=t)
     plt.legend()
+    plt.savefig('origin.png')
     plt.show()

@@ -51,6 +51,11 @@ float compare_matrices( int m, int n, float *a, int lda, float *b, int ldb )
   return max_diff;
 }
 
+static double get_time(struct timespec *start,
+                       struct timespec *end) {
+    return end->tv_sec - start->tv_sec + (end->tv_nsec - start->tv_nsec) * 1e-9;
+}
+
 int m, n, k, lda, ldb, ldc;
 
 double time_tmp, time_best, gflops, diff;
@@ -58,6 +63,10 @@ double time_tmp, time_best, gflops, diff;
 float *a, *b, *c, *prec, *nowc;    
 
 int main(){
+
+    struct timespec start, end;
+
+    double time_used = 0.0;
 
     for(int i = 40; i <= 800; i += 40){
         m = i;
@@ -89,12 +98,14 @@ int main(){
             
             copy_matrix(m, n, prec, ldc, c, ldc);
 
-            time_tmp = dclock();
+            clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
             MatrixMultiply(m, n, k, a, lda, b, ldb, c, ldc);
 
-            time_tmp = dclock() - time_tmp;
+            clock_gettime(CLOCK_MONOTONIC_RAW, &end);
 
+            time_tmp = get_time(&start, &end);
+            
             if(j == 0)
                 time_best = time_tmp;
             else
@@ -116,5 +127,7 @@ int main(){
         free(prec);
         free(nowc);
     }
+    printf("\n");
+    fflush(stdout);
     return 0;
 }
