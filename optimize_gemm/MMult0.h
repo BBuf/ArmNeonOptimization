@@ -2,7 +2,7 @@
 
 #define A( i, j ) a[ (i)*lda + (j) ]
 #define B( i, j ) b[ (i)*ldb + (j) ]
-#define C( i, j ) c[ (i)*ldb + (j) ]
+#define C( i, j ) c[ (i)*ldc + (j) ]
 // gemm C = A * B + C
 void MatrixMultiply(int m, int n, int k, float *a, int lda, float *b, int ldb, float *c, int ldc)
 {

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
-#include "matrix_multiply_origin.h"
+#include "MMult0.h"
 #include "dclock.h"
 using namespace std;
 
@@ -74,8 +74,8 @@ int main(){
         k = i;
         gflops = 2.0 * m * n * k * 1.0e-09;
         lda = m;
-        ldb = n;
-        ldc = k;
+        ldb = k;
+        ldc = m;
         a = (float *)malloc(lda * k * sizeof(float));
         b = (float *)malloc(ldb * n * sizeof(float));
         c = (float *)malloc(ldc * n * sizeof(float));
