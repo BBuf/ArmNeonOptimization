@@ -6,11 +6,11 @@
 
 /* Routine for computing C = A * B + C */
 
-void AddDot4x4( int, double *, int, double *, int, double *, int );
+void AddDot4x4( int, float *, int, float *, int, float *, int );
 
-void MY_MMult( int m, int n, int k, double *a, int lda, 
-                                    double *b, int ldb,
-                                    double *c, int ldc )
+void MY_MMult( int m, int n, int k, float *a, int lda, 
+                                    float *b, int ldb,
+                                    float *c, int ldc )
 {
   int i, j;
 
@@ -25,7 +25,7 @@ void MY_MMult( int m, int n, int k, double *a, int lda,
 }
 
 
-void AddDot4x4( int k, double *a, int lda,  double *b, int ldb, double *c, int ldc )
+void AddDot4x4( int k, float *a, int lda,  float *b, int ldb, float *c, int ldc )
 {
   /* So, this routine computes a 4x4 block of matrix A
            C( 0, 0 ), C( 0, 1 ), C( 0, 2 ), C( 0, 3 ).  
@@ -40,8 +40,7 @@ void AddDot4x4( int k, double *a, int lda,  double *b, int ldb, double *c, int l
            C( i+3, j ), C( i+3, j+1 ), C( i+3, j+2 ), C( i+3, j+3 ) 
 	  
      in the original matrix C 
-     In this version, we use registers for elements in the current row
-     of B as well */
+     A simple rearrangement to prepare for the use of vector registers */
 
   int p;
   register float 
@@ -93,28 +92,30 @@ void AddDot4x4( int k, double *a, int lda,  double *b, int ldb, double *c, int l
     b_p2_reg = *b_p2_pntr++;
     b_p3_reg = *b_p3_pntr++;
 
-    /* First row */
+    /* First row and second rows */
     c_00_reg += a_0p_reg * b_p0_reg;
-    c_01_reg += a_0p_reg * b_p1_reg;
-    c_02_reg += a_0p_reg * b_p2_reg;
-    c_03_reg += a_0p_reg * b_p3_reg;
-
-    /* Second row */
     c_10_reg += a_1p_reg * b_p0_reg;
+
+    c_01_reg += a_0p_reg * b_p1_reg;
     c_11_reg += a_1p_reg * b_p1_reg;
+
+    c_02_reg += a_0p_reg * b_p2_reg;
     c_12_reg += a_1p_reg * b_p2_reg;
+
+    c_03_reg += a_0p_reg * b_p3_reg;
     c_13_reg += a_1p_reg * b_p3_reg;
 
-    /* Third row */
+    /* Third and fourth rows */
     c_20_reg += a_2p_reg * b_p0_reg;
-    c_21_reg += a_2p_reg * b_p1_reg;
-    c_22_reg += a_2p_reg * b_p2_reg;
-    c_23_reg += a_2p_reg * b_p3_reg;
-
-    /* Four row */
     c_30_reg += a_3p_reg * b_p0_reg;
+
+    c_21_reg += a_2p_reg * b_p1_reg;
     c_31_reg += a_3p_reg * b_p1_reg;
+
+    c_22_reg += a_2p_reg * b_p2_reg;
     c_32_reg += a_3p_reg * b_p2_reg;
+
+    c_23_reg += a_2p_reg * b_p3_reg;
     c_33_reg += a_3p_reg * b_p3_reg;
   }
 
