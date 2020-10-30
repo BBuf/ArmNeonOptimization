@@ -3,6 +3,27 @@
 #include <string.h>
 #include <iostream>
 #include "MMult0.h"
+#include "MMult1.h"
+#include "MMult2.h"
+#include "MMult_1x4_3.h"
+#include "MMult_1x4_4.h"
+#include "MMult_1x4_5.h"
+#include "MMult_1x4x6.h"
+#include "MMult_1x4_7.h"
+#include "MMult_1x4_8.h"
+#include "MMult_1x4_9.h"
+#include "MMult_4x4_3.h"
+#include "MMult_4x4_4.h"
+#include "MMult_4x4_5.h"
+#include "MMult_4x4_6.h"
+#include "MMult_4x4_7.h"
+#include "MMult_4x4_8.h"
+#include "MMult_4x4_9.h"
+#include "MMult_4x4_10.h"
+#include "MMult_4x4_11.h"
+#include "MMult_4x4_12.h"
+#include "MMult_4x4_13.h"
+
 #include "dclock.h"
 using namespace std;
 
@@ -100,7 +121,7 @@ int main(){
 
             clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
-            MatrixMultiply(m, n, k, a, lda, b, ldb, c, ldc);
+            MY_MMult1(m, n, k, a, lda, b, ldb, c, ldc);
 
             clock_gettime(CLOCK_MONOTONIC_RAW, &end);
 

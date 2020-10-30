@@ -8,7 +8,7 @@
 
 void AddDot1x4( int, float *, int,  float *, int, float *, int )
 
-void MY_MMult( int m, int n, int k, float *a, int lda, 
+void MY_MMult_1x4_5( int m, int n, int k, float *a, int lda, 
                                     float *b, int ldb,
                                     float *c, int ldc )
 {
