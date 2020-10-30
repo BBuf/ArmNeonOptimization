@@ -24,5 +24,5 @@ if __name__ == '__main__':
     t, x, y = solve('now.txt')
     plt.plot(x, y, label=t)
     plt.legend()
-    plt.savefig('origin.png')
+    plt.savefig('MMult1.png')
     plt.show()

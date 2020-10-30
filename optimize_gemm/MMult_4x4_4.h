@@ -6,26 +6,6 @@
 
 /* Routine for computing C = A * B + C */
 
-void AddDot4x4( int, float *, int, float *, int, float *, int );
-void AddDot( int, float *, int, float *, float * );
-
-void MY_MMult_4x4_4( int m, int n, int k, float *a, int lda, 
-                                    float *b, int ldb,
-                                    float *c, int ldc )
-{
-  int i, j;
-
-  for ( j=0; j<n; j+=4 ){        /* Loop over the columns of C, unrolled by 4 */
-    for ( i=0; i<m; i+=4 ){        /* Loop over the rows of C */
-      /* Update C( i,j ), C( i,j+1 ), C( i,j+2 ), and C( i,j+3 ) in
-	 one routine (four inner products) */
-
-      AddDot4x4( k, &A( i,0 ), lda, &B( 0,j ), ldb, &C( i,j ), ldc );
-    }
-  }
-}
-
-
 void AddDot4x4( int k, float *a, int lda,  float *b, int ldb, float *c, int ldc )
 {
   /* So, this routine computes a 4x4 block of matrix A
@@ -117,3 +97,21 @@ void AddDot4x4( int k, float *a, int lda,  float *b, int ldb, float *c, int ldc 
     C( 3, 3 ) += A( 3, p ) * B( p, 3 );     
   }
 }
+
+void MY_MMult_4x4_4( int m, int n, int k, float *a, int lda, 
+                                    float *b, int ldb,
+                                    float *c, int ldc )
+{
+  int i, j;
+
+  for ( j=0; j<n; j+=4 ){        /* Loop over the columns of C, unrolled by 4 */
+    for ( i=0; i<m; i+=4 ){        /* Loop over the rows of C */
+      /* Update C( i,j ), C( i,j+1 ), C( i,j+2 ), and C( i,j+3 ) in
+	 one routine (four inner products) */
+
+      AddDot4x4( k, &A( i,0 ), lda, &B( 0,j ), ldb, &C( i,j ), ldc );
+    }
+  }
+}
+
+
