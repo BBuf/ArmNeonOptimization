@@ -6,12 +6,12 @@
 
 /* Routine for computing C = A * B + C */
 
-void AddDot4x4( int, double *, int, double *, int, double *, int );
-void AddDot( int, double *, int, double *, double * );
+void AddDot4x4( int, float *, int, float *, int, float *, int );
+void AddDot( int, float *, int, float *, float * );
 
-void MY_MMult( int m, int n, int k, double *a, int lda, 
-                                    double *b, int ldb,
-                                    double *c, int ldc )
+void MY_MMult( int m, int n, int k, float *a, int lda, 
+                                    float *b, int ldb,
+                                    float *c, int ldc )
 {
   int i, j;
 
@@ -26,7 +26,7 @@ void MY_MMult( int m, int n, int k, double *a, int lda,
 }
 
 
-void AddDot4x4( int k, double *a, int lda,  double *b, int ldb, double *c, int ldc )
+void AddDot4x4( int k, float *a, int lda,  float *b, int ldb, float *c, int ldc )
 {
   /* So, this routine computes a 4x4 block of matrix A
            C( 0, 0 ), C( 0, 1 ), C( 0, 2 ), C( 0, 3 ).  

@@ -2,6 +2,6 @@
 
 |架构|浮点峰值(GFlops)|
 |--|--|
-|Cortex-A17，armv7a|10.88|
+|Cortex-A53，armv7a|10.88|
 
 

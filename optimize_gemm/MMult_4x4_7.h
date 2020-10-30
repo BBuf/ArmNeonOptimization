@@ -6,11 +6,11 @@
 
 /* Routine for computing C = A * B + C */
 
-void AddDot4x4( int, double *, int, double *, int, double *, int );
+void AddDot4x4( int, float *, int, float *, int, float *, int );
 
-void MY_MMult( int m, int n, int k, double *a, int lda, 
-                                    double *b, int ldb,
-                                    double *c, int ldc )
+void MY_MMult( int m, int n, int k, float *a, int lda, 
+                                    float *b, int ldb,
+                                    float *c, int ldc )
 {
   int i, j;
 
@@ -25,7 +25,7 @@ void MY_MMult( int m, int n, int k, double *a, int lda,
 }
 
 
-void AddDot4x4( int k, double *a, int lda,  double *b, int ldb, double *c, int ldc )
+void AddDot4x4( int k, float *a, int lda,  float *b, int ldb, float *c, int ldc )
 {
   /* So, this routine computes a 4x4 block of matrix A
            C( 0, 0 ), C( 0, 1 ), C( 0, 2 ), C( 0, 3 ).  
@@ -43,7 +43,7 @@ void AddDot4x4( int k, double *a, int lda,  double *b, int ldb, double *c, int l
      In this version, we use pointer to track where in four columns of B we are */
 
   int p;
-  register double 
+  register float 
     /* hold contributions to
        C( 0, 0 ), C( 0, 1 ), C( 0, 2 ), C( 0, 3 ) 
        C( 1, 0 ), C( 1, 1 ), C( 1, 2 ), C( 1, 3 ) 
@@ -62,7 +62,7 @@ void AddDot4x4( int k, double *a, int lda,  double *b, int ldb, double *c, int l
        a_1p_reg,
        a_2p_reg,
        a_3p_reg;
-  double 
+  float 
     /* Point to the current elements in the four columns of B */
     *b_p0_pntr, *b_p1_pntr, *b_p2_pntr, *b_p3_pntr; 
 

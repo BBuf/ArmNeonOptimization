@@ -1,8 +1,8 @@
-# aaArmNeonOptimization
+# ArmNeonOptimization
 
 ## Environment
 
-Hisi 3519A-> (2 x A17)
+Hisi 3519A-> (2 x A53)
 
 ## Build And Run
 

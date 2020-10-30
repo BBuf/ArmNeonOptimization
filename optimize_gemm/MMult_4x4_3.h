@@ -6,11 +6,11 @@
 
 /* Routine for computing C = A * B + C */
 
-void AddDot( int, double *, int, double *, double * );
+void AddDot( int, float *, int, float *, float * );
 
-void MY_MMult( int m, int n, int k, double *a, int lda, 
-                                    double *b, int ldb,
-                                    double *c, int ldc )
+void MY_MMult( int m, int n, int k, float *a, int lda, 
+                                    float *b, int ldb,
+                                    float *c, int ldc )
 {
   int i, j;
 
@@ -25,7 +25,7 @@ void MY_MMult( int m, int n, int k, double *a, int lda,
 }
 
 
-void AddDot4x4( int k, double *a, int lda,  double *b, int ldb, double *c, int ldc )
+void AddDot4x4( int k, float *a, int lda,  float *b, int ldb, float *c, int ldc )
 {
   /* So, this routine computes a 4x4 block of matrix A
            C( 0, 0 ), C( 0, 1 ), C( 0, 2 ), C( 0, 3 ).  
@@ -71,7 +71,7 @@ void AddDot4x4( int k, double *a, int lda,  double *b, int ldb, double *c, int l
 
 #define X(i) x[ (i)*incx ]
 
-void AddDot( int k, double *x, int incx,  double *y, double *gamma )
+void AddDot( int k, float *x, int incx,  float *y, float *gamma )
 {
   /* compute gamma := x' * y + gamma with vectors x and y of length n.
      Here x starts at location x with increment (stride) incx and y starts at location y and has (implicit) stride of 1.
