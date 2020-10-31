@@ -8,7 +8,7 @@
 
 /* Create macro to let X( i ) equal the ith element of x */
 
-#define X(i) x[ (i)*incx ]
+#define Y(i) y[ (i)*incx ]
 
 void AddDot( int k, float *x, int incx,  float *y, float *gamma )
 {
@@ -19,7 +19,7 @@ void AddDot( int k, float *x, int incx,  float *y, float *gamma )
   int p;
 
   for ( p=0; p<k; p++ ){
-    *gamma += X( p ) * y[ p ];     
+    *gamma += x[p] * Y(p);     
   }
 }
 

@@ -15,23 +15,6 @@
 
 /* Routine for computing C = A * B + C */
 
-void InnerKernel( int m, int n, int k, float *a, int lda, 
-                                       float *b, int ldb,
-                                       float *c, int ldc )
-{
-  int i, j;
-
-  for ( j=0; j<n; j+=4 ){        /* Loop over the columns of C, unrolled by 4 */
-    for ( i=0; i<m; i+=4 ){        /* Loop over the rows of C */
-      /* Update C( i,j ), C( i,j+1 ), C( i,j+2 ), and C( i,j+3 ) in
-	 one routine (four inner products) */
-
-      AddDot4x4( k, &A( i,0 ), lda, &B(0, j), ldb, &C( i,j ), ldc );
-    }
-  }
-}
-
-
 void AddDot4x4( int k, float *a, int lda,  float *b, int ldb, float *c, int ldc )
 {
   float 
@@ -91,7 +74,23 @@ void AddDot4x4( int k, float *a, int lda,  float *b, int ldb, float *c, int ldc 
   vst1q_f32(c_pntr, c_reg);
 }
 
-void MY_MMult( int m, int n, int k, float *a, int lda, 
+void InnerKernel( int m, int n, int k, float *a, int lda, 
+                                       float *b, int ldb,
+                                       float *c, int ldc )
+{
+  int i, j;
+
+  for ( j=0; j<n; j+=4 ){        /* Loop over the columns of C, unrolled by 4 */
+    for ( i=0; i<m; i+=4 ){        /* Loop over the rows of C */
+      /* Update C( i,j ), C( i,j+1 ), C( i,j+2 ), and C( i,j+3 ) in
+	 one routine (four inner products) */
+
+      AddDot4x4( k, &A( i,0 ), lda, &B(0, j), ldb, &C( i,j ), ldc );
+    }
+  }
+}
+
+void MY_MMult_4x4_11( int m, int n, int k, float *a, int lda, 
                                     float *b, int ldb,
                                     float *c, int ldc ) 
 {

@@ -45,28 +45,6 @@ void PackMatrixA( int k, float *a, int lda, float * a_to)
   
 }
 
-void InnerKernel( int m, int n, int k, float *a, int lda, 
-                                       float *b, int ldb,
-                                       float *c, int ldc )
-{
-  int i, j;
-  float packedA[m * k];
-  float packedB[k * n];
-
-  for ( j=0; j<n; j+=4 ){        /* Loop over the columns of C, unrolled by 4 */
-    PackMatrixB(k, &B(0, j), ldb, packedB + j * k);
-    for ( i=0; i<m; i+=4 ){        /* Loop over the rows of C */
-      /* Update C( i,j ), C( i,j+1 ), C( i,j+2 ), and C( i,j+3 ) in
-	 one routine (four inner products) */
-      if (0 == j) {
-        PackMatrixA(k, &A(i, 0), lda, packedA + i * k);
-      }
-      AddDot4x4( k, packedA + i * k, k, packedB + j * k, 4, &C( i,j ), ldc );
-    }
-  }
-}
-
-
 void AddDot4x4( int k, float *a, int lda,  float *b, int ldb, float *c, int ldc )
 {
   float32x4_t c_0p_sum = {0};
@@ -118,7 +96,28 @@ void AddDot4x4( int k, float *a, int lda,  float *b, int ldb, float *c, int ldc 
   vst1q_f32(c_pntr, c_reg);
 }
 
-void MY_MMult( int m, int n, int k, float *a, int lda, 
+void InnerKernel( int m, int n, int k, float *a, int lda, 
+                                       float *b, int ldb,
+                                       float *c, int ldc )
+{
+  int i, j;
+  float packedA[m * k];
+  float packedB[k * n];
+
+  for ( j=0; j<n; j+=4 ){        /* Loop over the columns of C, unrolled by 4 */
+    PackMatrixB(k, &B(0, j), ldb, packedB + j * k);
+    for ( i=0; i<m; i+=4 ){        /* Loop over the rows of C */
+      /* Update C( i,j ), C( i,j+1 ), C( i,j+2 ), and C( i,j+3 ) in
+	 one routine (four inner products) */
+      if (0 == j) {
+        PackMatrixA(k, &A(i, 0), lda, packedA + i * k);
+      }
+      AddDot4x4( k, packedA + i * k, k, packedB + j * k, 4, &C( i,j ), ldc );
+    }
+  }
+}
+
+void MY_MMult_4x4_13( int m, int n, int k, float *a, int lda, 
                                     float *b, int ldb,
                                     float *c, int ldc ) 
 {
