@@ -49,7 +49,8 @@ void AddDot4x4( int k, float *a, int lda,  float *b, int ldb, float *c, int ldc 
     C( 3, 0 ) += A( 3, p ) * B( p, 0 );     
     C( 3, 1 ) += A( 3, p ) * B( p, 1 );     
     C( 3, 2 ) += A( 3, p ) * B( p, 2 );     
-    C( 3, 3 ) += A( 3, p ) * B( p, 3 );     
+    C( 3, 3 ) += A( 3, p ) * B( p, 3 );
+  }     
 }
 
 void MY_MMult_4x4_5( int m, int n, int k, float *a, int lda, 
