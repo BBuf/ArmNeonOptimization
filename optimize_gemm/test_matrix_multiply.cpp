@@ -15,9 +15,8 @@
 // #include "MMult_4x4_5.h"
 // #include "MMult_4x4_6.h"
 // #include "MMult_4x4_7.h"
-#include "MMult_4x4_8.h"
-// #include "MMult_4x4_9.h"
-// #include "MMult_4x4_10.h"
+// #include "MMult_4x4_8.h"
+#include "MMult_4x4_10.h"
 // #include "MMult_4x4_11.h"
 // #include "MMult_4x4_12.h"
 // #include "MMult_4x4_13.h"
@@ -117,7 +116,7 @@ int main(){
 
             clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
-            MY_MMult_4x4_8(m, n, k, a, lda, b, ldb, c, ldc);
+            MY_MMult_4x4_10(m, n, k, a, lda, b, ldb, c, ldc);
 
             clock_gettime(CLOCK_MONOTONIC_RAW, &end);
 
