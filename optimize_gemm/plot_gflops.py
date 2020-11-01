@@ -5,7 +5,7 @@ def solve(filename):
     f = open(filename)
     sizes = [40]
     times = [0.0]
-    title = 'MMult4x4_10'
+    title = 'MMult4x4_11'
     while True:
         line = f.readline()
         if line:
@@ -24,5 +24,5 @@ if __name__ == '__main__':
     t, x, y = solve('now.txt')
     plt.plot(x, y, label=t)
     plt.legend()
-    plt.savefig('MMult4x4_10.png')
+    plt.savefig('MMult4x4_11.png')
     plt.show()
