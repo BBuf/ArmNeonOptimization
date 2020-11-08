@@ -24,7 +24,7 @@ DEP_INC_DIR += -I$(TOP_DIR)/src
 LDFLAGS+= -L$(TOP_DIR)/library/opencv2.4.9
 LDFLAGS+= -lopencv_highgui -lopencv_imgproc -lopencv_core -lz
 LDFLAGS+= -L$(TOP_DIR)/library/jpeg
-LDFLAGS+= -ljpeg  -lm -pthread -lrt -fopenmp -ldl
+LDFLAGS+= -ljpeg  -lm -pthread -lrt  -ldl
 LDFLAGS+= -lz
 
 OBJ_CPP := $(patsubst %.cpp, %.o, $(CXX_SOURCE))
@@ -32,7 +32,7 @@ OBJ_C := $(patsubst %.c, %.o, $(C_SOURCE))
 
 DEFINE_MACRO := 
 
-CPPFLAGS := -Wall -O3 -fpermissive -fopenmp -mfloat-abi=softfp -mfpu=neon -march=armv7-a -std=c++11 
+CPPFLAGS := -Wall -O3 -fpermissive  -mfloat-abi=softfp -mfpu=neon -march=armv7-a -std=c++11 
 CPPFLAGS += $(DEP_INC_DIR) $(DEFINE_MACRO) 
 CFLAGS += $(DEP_INC_DIR) $(DEFINE_MACRO) 
 

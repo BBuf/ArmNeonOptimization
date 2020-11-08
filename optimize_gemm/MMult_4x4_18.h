@@ -45,9 +45,9 @@ After reading 6.4, rk3399 L2 cache is large, mc = 1MB / 256 = 4096
 
 
 */
-#define GEMM_N (384)  // GEMM_R
-#define GEMM_M (4096)  // GEMM_P
-#define GEMM_K (256)  // GEMM_Q
+#define GEMM_N (240)  // GEMM_R
+#define GEMM_M (240)  // GEMM_P
+#define GEMM_K (240)  // GEMM_Q
 #define GEMM_UNROLL (4)
 #define KERNEL_4x4  kernel_4x4_v3
 

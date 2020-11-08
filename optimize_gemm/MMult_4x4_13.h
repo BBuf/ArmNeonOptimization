@@ -2,8 +2,8 @@
 #include <stdio.h>
 
 /* Block sizes */
-#define mc 256
-#define kc 128 
+#define mc 128
+#define kc 128
 
 /* Create macros so that the matrices are stored in row-major order */
 
