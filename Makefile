@@ -6,8 +6,8 @@ TOP_DIR = .
 
 TARGET_EXE = unit_test
 
-#CXX_SOURCE += $(TOP_DIR)/src/unit_test_conv.cpp
-CXX_SOURCE += $(TOP_DIR)/optimize_gemm/test_matrix_multiply.cpp
+CXX_SOURCE += $(TOP_DIR)/src/unit_test_conv1x1.cpp
+# CXX_SOURCE += $(TOP_DIR)/optimize_gemm/test_matrix_multiply.cpp
 
 ####################head file###################
 DEP_INC_DIR += -I$(TOP_DIR)/include

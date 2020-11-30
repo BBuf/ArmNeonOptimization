@@ -143,6 +143,65 @@ float c[200]={
           -0.2210, -0.5287,  0.0488
 };
 
+// int main(){
+//     const int inw = 3;
+//     const int inh = 3;
+//     const int inch = 5;
+//     const int kw = 1;
+//     const int kh = 1;
+//     int stride = 1;
+//     const int outw = (inw - kw) / stride + 1;
+//     const int outh = (inh - kh) / stride + 1;
+//     const int outch = 7;
+
+//     //3x3x5
+//     float *src = new float[inw * inh * inch];
+//     //1x1x5x7
+//     float *kernel = new float[kw * kh * outch * inch];
+//     //3x3x7
+//     float *dest = new float[outw * outh * outch];
+
+//     //赋值
+//     for(int i = 0; i < inw * inh * inch; i++){
+//         src[i] = a[i];
+//     }
+
+//     for(int i = 0; i < kw * kh * inch * outch; i++){
+//         kernel[i] = b[i];
+//     }
+    
+//     int64 st = cvGetTickCount();
+
+//     for(int i = 0; i < 10; i++){
+//         //memset(dest, 0, sizeof(dest));
+//         for(int j = 0; j < outw * outh * outch; j++) dest[j] = 0.f;
+//         conv1x1s1(src, inw, inh, inch, kernel, dest, outw, outh, outch);
+//     }
+    
+//     double duration = (cv::getTickCount() - st) / cv::getTickFrequency() * 100;
+
+//     for(int i = 0; i < outw * outh * outch ; i++){
+//         bool flag = cmp(dest[i], c[i]);
+//         if(flag == false){
+//             printf("WA: %d\n", i);
+//             printf("Expected: %.4f, ConvOutput: %.4f\n", c[i], dest[i]);
+//         }
+//     }
+
+//     printf("Time: %.5f\n", duration);
+
+//     // for(int i = 0; i < outw * outh * outch; i++){
+//     //     printf("%.4f ", dest[i]);
+//     // }
+
+//     // printf("\n");
+//     free(src);
+//     free(kernel);
+//     free(dest);
+
+//     return 0;
+// }
+
 
 int main(){
     const int inw = 3;
@@ -155,11 +214,13 @@ int main(){
     const int outh = (inh - kh) / stride + 1;
     const int outch = 7;
 
-    //5x5x3
+    //3x3x5
     float *src = new float[inw * inh * inch];
-    //3x3x4
+    //1x1x5x7
     float *kernel = new float[kw * kh * outch * inch];
-    //3x3x4
+    //transform
+    float *kernel_transform = new float[(outch%4 + outch/4) * (inch/4 + inch%4) * 4 * 4];
+    //3x3x7
     float *dest = new float[outw * outh * outch];
 
     //赋值
@@ -171,12 +232,15 @@ int main(){
         kernel[i] = b[i];
     }
     
+    conv1x1s1SgemmTransformKenel(kernel, kernel_transform, inch, outch);
+
     int64 st = cvGetTickCount();
 
     for(int i = 0; i < 10; i++){
         //memset(dest, 0, sizeof(dest));
         for(int j = 0; j < outw * outh * outch; j++) dest[j] = 0.f;
-        conv1x1s1(src, inw, inh, inch, kernel, dest, outw, outh, outch);
+        //conv1x1s1(src, inw, inh, inch, kernel, dest, outw, outh, outch);
+        conv1x1s1SgemmNeon(src, inw, inh, inch, kernel_transform, dest, outw, outh, outch);
     }
     
     double duration = (cv::getTickCount() - st) / cv::getTickFrequency() * 100;
