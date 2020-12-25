@@ -3,11 +3,8 @@
 // #define CATCH_CONFIG_MAIN
 // #include <catch.h>
 #include <math.h>
-#include <convolution_3x3s1.h>
-#include <convolution_3x3s2.h>
-#include <opencv2/opencv.hpp>
+#include <MsnhConvolution3x3s1.h>
 using namespace std;
-using namespace cv;
 
 bool cmp(float x, float y){
     if(fabs(x - y) < 0.01){
@@ -133,15 +130,12 @@ int main(){
         kernel[i] = b[i];
     }
     
-    int64 st = cvGetTickCount();
-
     for(int i = 0; i < 10; i++){
         //memset(dest, 0, sizeof(dest));
         for(int j = 0; j < outw * outh * outch; j++) dest[j] = 0.f;
-        conv3x3s1_neon(src, inw, inh, inch, kernel, dest, outw, outh, outch);
+        conv3x3s1Neon(src, inw, inh, inch, kernel, dest, outw, outh, outch);
     }
-    
-    double duration = (cv::getTickCount() - st) / cv::getTickFrequency() * 100;
+
 
     for(int i = 0; i < outw * outh * outch ; i++){
         bool flag = cmp(dest[i], c[i]);
@@ -151,11 +145,10 @@ int main(){
         }
     }
 
-    printf("Time: %.5f\n", duration);
 
-    // for(int i = 0; i < outw * outh * outch; i++){
-    //     printf("%.4f ", dest[i]);
-    // }
+    for(int i = 0; i < outw * outh * outch; i++){
+        printf("%.4f ", dest[i]);
+    }
 
     // printf("\n");
     free(src);
