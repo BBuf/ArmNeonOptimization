@@ -1,7 +1,7 @@
 #include <iostream>
 #include <stdio.h>
 // #define CATCH_CONFIG_MAIN
-// #include <catch.h>
+#include <dclock.h>
 #include <math.h>
 #include <MsnhConvolution3x3s1.h>
 using namespace std;
@@ -102,8 +102,16 @@ float c[200]={
           -0.1318, -0.4056, -0.5152
 };
 
+static double get_time(struct timespec *start,
+                       struct timespec *end) {
+    return end->tv_sec - start->tv_sec + (end->tv_nsec - start->tv_nsec) * 1e-9;
+}
 
 int main(){
+    struct timespec start, end;
+
+    double time_used = 0.0;
+
     const int inw = 5;
     const int inh = 5;
     const int inch = 3;
@@ -129,11 +137,15 @@ int main(){
     for(int i = 0; i < kw * kh * inch * outch; i++){
         kernel[i] = b[i];
     }
-    
+
     for(int i = 0; i < 10; i++){
         //memset(dest, 0, sizeof(dest));
         for(int j = 0; j < outw * outh * outch; j++) dest[j] = 0.f;
+        clock_gettime(CLOCK_MONOTONIC_RAW, &start);
         conv3x3s1Neon(src, inw, inh, inch, kernel, dest, outw, outh, outch);
+        clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+        time_used = get_time(&start, &end);
+        printf("%.5f\n", time_used);
     }
 
 

@@ -1,6 +1,6 @@
 #include <vector>
 #include <iostream>
-#define USE_NEON 0
+#define USE_NEON 1
 #include <arm_neon.h>
 #define USE_OMP 0
 #define OMP_THREAD 2
@@ -411,8 +411,8 @@ void conv3x3s1Neon(float *const &src, const int &inWidth, const int &inHeight,  
 #endif
 
 #if USE_NEON
-
-                asm volatile(
+                if(nn > 0){
+                    asm volatile(
                         "0:                                 \n"
 
                         // v8.4s [a0, b0, c0, d0]
