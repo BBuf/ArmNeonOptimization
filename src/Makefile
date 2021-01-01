@@ -6,7 +6,7 @@ TOP_DIR = .
 
 TARGET_EXE = unit_test
 
-CXX_SOURCE += ./unit_test_conv.cpp
+CXX_SOURCE += ./unit_test_conv_3x3s2.cpp
 
 ####################head file###################
 DEP_INC_DIR += -I$(TOP_DIR)
